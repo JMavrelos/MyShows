@@ -8,13 +8,12 @@ import gr.blackswamp.myshows.data.db.LocalDatabase
 import gr.blackswamp.myshows.data.db.ShowDO
 import gr.blackswamp.myshows.logic.ListLogic
 import gr.blackswamp.myshows.logic.model.Show
-import gr.blackswamp.myshows.logic.model.ShowDetails
+import gr.blackswamp.myshows.logic.model.isMovie
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import java.util.*
 import kotlin.random.Random
@@ -106,27 +105,27 @@ class ListLogicTest {
     }
 
     @Test
-    fun checkThatStateDoesNotChangeWhenNoResultQueryIsSent(){
-        val expectedFilter ="111"
+    fun checkThatStateDoesNotChangeWhenNoResultQueryIsSent() {
+        val expectedFilter = "111"
         val expectedPage = 1
         val expectedMax = 10
         val incorrectFilter = "12jhj3k123"
-        whenever(service.getShows(expectedFilter,1))
-            .thenReturn(Observable.just(ShowListAO(1,expectedPage,buildApiShows(30),expectedMax)))
+        whenever(service.getShows(expectedFilter, 1))
+            .thenReturn(Observable.just(ShowListAO(1, expectedPage, buildApiShows(30), expectedMax)))
 
         whenever(service.getShows(incorrectFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, -3, listOf(), 1)))
 
         logic.searchShows(expectedFilter)
-        verify(vm,never()).showError(anyInt(),any())
+        verify(vm, never()).showError(anyInt(), any())
         logic.searchShows(incorrectFilter)
         verify(vm).showError(R.string.error_no_results)
-        assertEquals(expectedFilter,logic.showFilter)
-        assertEquals(expectedPage,logic.page)
-        assertEquals(expectedMax,logic.maxPages)
+        assertEquals(expectedFilter, logic.showFilter)
+        assertEquals(expectedPage, logic.page)
+        assertEquals(expectedMax, logic.maxPages)
 
-        verify(vm,times(2)).showLoading(true)
-        verify(vm,times(2)).showLoading(false)
+        verify(vm, times(2)).showLoading(true)
+        verify(vm, times(2)).showLoading(false)
     }
 
 
@@ -208,16 +207,79 @@ class ListLogicTest {
     }
 
     @Test
-    fun whenUserSelectsShowDisplayDetails() {
-        val id = 123
-        val expected = ShowDetailAO(id, null, randomString(10), randomString(10), randomString(100), listOf(), VideosAO(listOf()))
-        whenever(service.getMovieDetails(id)).thenReturn(Observable.just(expected))
+    fun whenUserSelectsShowFromShowListDisplayDetails() {
+        val filter = "111"
+        val all = buildApiShows(10, false, rnd.nextInt(100))
+        val selected = all[3]
+        val id = selected.id
+        val selectedDetails = ShowDetailAO(selected.id, randomString(100), listOf(), VideosAO(listOf()))
+        val expected = Show(Show(selected), selectedDetails)
+        whenever(service.getShows(filter, 1))
+            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+
+        if (selected.isMovie) {
+            whenever(service.getMovieDetails(id)).thenReturn(Observable.just(selectedDetails))
+        } else {
+            whenever(service.getTvDetails(id)).thenReturn(Observable.just(selectedDetails))
+        }
+
+        logic.searchShows(filter)
 
         logic.showSelected(id, true)
 
-        verify(vm).showDetails(ShowDetails(expected, true))
-        verify(vm).showLoading(true)
-        verify(vm).showLoading(false)
+        verify(vm).showDetails(expected)
+        verify(vm,times(2)).showLoading(true)
+        verify(vm,times(2)).showLoading(false)
+    }
+
+    @Test
+    fun whenUserSelectsShowFromShowListWhichIsNotLoaded() {
+        val filter = "111"
+        val all = buildApiShows(10, false, rnd.nextInt(100))
+        val id = 1111
+        whenever(service.getShows(filter, 1))
+            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+        logic.searchShows(filter)
+
+        logic.showSelected(id, true)
+
+        verify(vm, never()).showDetails(any())
+        verify(vm).showError(R.string.error_show_not_found)
+        verify(vm,times(2)).showLoading(true)
+        verify(vm,times(2)).showLoading(false)
+    }
+
+    @Test
+    fun whenUserSelectsShowFromWatchListDisplayDetails() {
+        val all = buildDbShows(10, rnd.nextInt(100))
+        val selected = all[3]
+        val id = selected.id
+        val expected = Show(selected)
+        whenever(db.loadWatchlistMatching(""))
+            .thenReturn(all)
+        logic.searchWatchlist("")
+
+        logic.showSelected(id, false)
+
+        verify(vm).showDetails(expected)
+        verify(vm,times(2)).showLoading(true)
+        verify(vm,times(2)).showLoading(false)
+    }
+
+    @Test
+    fun whenUserSelectsShowFromWatchListWhichIsNotLoaded() {
+        val all = buildDbShows(10, rnd.nextInt(100))
+        val id = 1111
+        whenever(db.loadWatchlistMatching(""))
+            .thenReturn(all)
+
+        logic.searchWatchlist("")
+
+        logic.showSelected(id, false)
+        verify(vm, never()).showDetails(any())
+        verify(vm).showError(R.string.error_show_not_found)
+        verify(vm,times(2)).showLoading(true)
+        verify(vm,times(2)).showLoading(false)
     }
 
     @Test
@@ -484,7 +546,7 @@ class ListLogicTest {
         (startId until startId + count).map { buildDbShow(it, rnd.nextInt(2) == 1) }
 
     private fun buildDbShow(id: Int, isMovie: Boolean) =
-        ShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", isMovie, null, rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null, null)
+        ShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", isMovie, rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null, null)
 
     private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 

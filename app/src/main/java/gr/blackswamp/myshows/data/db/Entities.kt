@@ -9,11 +9,10 @@ import androidx.room.PrimaryKey
 data class ShowDO(
     @PrimaryKey @ColumnInfo(name = "id") val id: Int
     , @ColumnInfo(name = "title") val title: String
-    , @ColumnInfo(name = "image") val image: String?
+    , @ColumnInfo(name = "poster") val poster: String?
     , @ColumnInfo(name = "summary") val summary: String
     , @ColumnInfo(name = "genre") val genre: String
     , @ColumnInfo(name = "isMovie") val isMovie: Boolean
-    , @ColumnInfo(name = "thumbnail") val thumbnail: String?
     , @ColumnInfo(name = "rating") val rating: String
     , @ColumnInfo(name = "release") val release: String
     , @ColumnInfo(name = "trailer") val trailer: String?

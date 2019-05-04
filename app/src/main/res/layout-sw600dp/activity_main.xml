@@ -53,7 +53,6 @@
             android:background="#000"
             android:clickable="true"
             android:focusable="true"
-
             android:focusableInTouchMode="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

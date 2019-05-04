@@ -9,10 +9,10 @@ import androidx.lifecycle.Transformations
 import gr.blackswamp.myshows.App
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBClient
+import gr.blackswamp.myshows.logic.DisplayLogic
+import gr.blackswamp.myshows.logic.IDisplayLogic
 import gr.blackswamp.myshows.logic.IListLogic
-import gr.blackswamp.myshows.logic.IShowLogic
 import gr.blackswamp.myshows.logic.ListLogic
-import gr.blackswamp.myshows.logic.ShowLogic
 import gr.blackswamp.myshows.ui.fragments.DisplayFragment
 import gr.blackswamp.myshows.ui.fragments.ListFragment
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
@@ -23,7 +23,7 @@ import gr.blackswamp.myshows.util.SingleLiveEvent
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application), ListFragment.ListViewModel, DisplayFragment.ShowViewModel, IMainViewModel {
-    val loading = MutableLiveData<Boolean>() //if the loading overlay should be shown
+    override val loading = MutableLiveData<Boolean>() //if the loading overlay should be shown
     val error = SingleLiveEvent<String?>() // an error that should be displayed, when consumed it reverts to its initial state
 
     override val searchFilter = MutableLiveData<String>() // the current searchFilter that should be displayed
@@ -47,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
     override val canLoadMore = MutableLiveData<Boolean>() // indicates if there are more items in the list
 
     private val listLogic: IListLogic = ListLogic(this, MovieDBClient.service, App.database, AppSchedulers) //object that handles the logic behind the list
-    private val showLogic: IShowLogic = ShowLogic(this, App.database, AppSchedulers) //object that handles the logic behind the display
+    private val displayLogic: IDisplayLogic = DisplayLogic(this, App.database, AppSchedulers) //object that handles the logic behind the display
 
     init {
         canLoadMore.postValue(false)
@@ -80,7 +80,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     //region incoming from list
     override fun select(show: ShowVO) {
-        listLogic.showSelected(show.id, show.isMovie)
+        listLogic.showSelected(show.id, displayingShowList.value ?: true)
     }
 
     override fun displayShowList() {
@@ -113,7 +113,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     }
 
-    override fun exitShows() = showLogic.exit()
+    override fun exitShows() = displayLogic.exit()
     //endregion
 
     override fun onCleared() {

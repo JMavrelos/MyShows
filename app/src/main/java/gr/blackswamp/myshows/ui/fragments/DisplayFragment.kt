@@ -6,6 +6,7 @@ import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.Toolbar
@@ -25,6 +26,12 @@ class DisplayFragment : Fragment() {
     companion object {
         const val TAG = "DisplayFragment"
         fun newInstance(): DisplayFragment = DisplayFragment()
+        const val NO_VIDEO_HTML = "<!doctype html>\n" +
+                "<html lang=\"en\">\n" +
+                "<body>\n" +
+                "<header style=\"position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);\"> No trailer exists for this Show</header>\n" +
+                "</body>\n" +
+                "</html>\n"
     }
 
     //region bindings
@@ -33,6 +40,7 @@ class DisplayFragment : Fragment() {
     private lateinit var genre: TextView
     private lateinit var summary: TextView
     private lateinit var watchLater: FloatingActionButton
+    private lateinit var trailer: WebView
     //endregion
 
     private lateinit var viewModel: ShowViewModel
@@ -50,6 +58,7 @@ class DisplayFragment : Fragment() {
         genre = view.findViewById(R.id.genre)
         summary = view.findViewById(R.id.summary)
         watchLater = view.findViewById(R.id.watch_later)
+        trailer = view.findViewById(R.id.trailer)
         summary.movementMethod = ScrollingMovementMethod()
     }
 
@@ -94,6 +103,13 @@ class DisplayFragment : Fragment() {
         genre.text = show.genre
         toolbar.title = show.title
         summary.text = show.summary
+
+
+        if (show.trailer == null) {
+            trailer.loadData(NO_VIDEO_HTML,null,null)
+        } else {
+
+        }
     }
 
     interface ShowViewModel {

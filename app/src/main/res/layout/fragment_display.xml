@@ -25,12 +25,21 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/half_screen"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent=".5" />
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/poster"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintDimensionRatio="1"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:padding="@dimen/padding"
+            app:layout_constraintBottom_toTopOf="@+id/half_screen"
+            app:layout_constraintEnd_toStartOf="@+id/genre_caption"
+            app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@drawable/ic_image" />
@@ -38,11 +47,13 @@
         <TextView
             android:id="@+id/genre_caption"
             style="@style/TextAppearance.MaterialComponents.Headline6"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/genre"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/poster" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toEndOf="@+id/poster"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/genre"
@@ -50,11 +61,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin"
-            app:layout_constraintBottom_toBottomOf="@id/genre_caption"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/genre_caption"
-            app:layout_constraintTop_toBottomOf="@id/summary_caption"
-            app:layout_constraintTop_toTopOf="@id/genre_caption"
+            app:layout_constraintStart_toStartOf="@+id/genre_caption"
+            app:layout_constraintTop_toBottomOf="@+id/genre_caption"
             tools:text="Action/Comedy" />
 
         <TextView
@@ -65,8 +74,8 @@
             android:width="0dp"
             android:text="@string/summary"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/genre_caption" />
+            app:layout_constraintStart_toStartOf="@id/genre_caption"
+            app:layout_constraintTop_toBottomOf="@+id/genre" />
 
         <TextView
             android:id="@+id/summary"
@@ -74,20 +83,40 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/half_screen"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/genre_caption"
+
             app:layout_constraintTop_toBottomOf="@id/summary_caption"
             tools:text="Est possimus consectetur officiis rerum deleniti ut expedita quis. Itaque aut et veniam sit saepe fugiat magnam. Quos fugiat sint dolor modi error voluptatem.
 
-Id voluptatem aliquam aspernatur tempora cum. Ipsum quaerat aut vel iusto cumque. Unde magnam quasi veniam. Et ipsa fugit recusandae assumenda deserunt. Odio officia quia et voluptatem praesentium qui odit. Fugiat repellat vero et itaque eos.
+        Id voluptatem aliquam aspernatur tempora cum. Ipsum quaerat aut vel iusto cumque. Unde magnam quasi veniam. Et ipsa fugit recusandae assumenda deserunt. Odio officia quia et voluptatem praesentium qui odit. Fugiat repellat vero et itaque eos.
 
-Corporis in illum placeat inventore quae repellendus eius possimus. Dolores suscipit incidunt temporibus. Necessitatibus eos aut natus distinctio. Vel eveniet ut aliquid cumque rerum. Velit blanditiis rem dolores placeat.
+        Corporis in illum placeat inventore quae repellendus eius possimus. Dolores suscipit incidunt temporibus. Necessitatibus eos aut natus distinctio. Vel eveniet ut aliquid cumque rerum. Velit blanditiis rem dolores placeat.
 
-Rem illum cumque corrupti suscipit vel. Animi excepturi et aut. Dolor delectus facere aut impedit tempore consequatur quia est. Provident adipisci alias inventore. Dolorem rem ratione eius veniam et voluptas et.
+        Rem illum cumque corrupti suscipit vel. Animi excepturi et aut. Dolor delectus facere aut impedit tempore consequatur quia est. Provident adipisci alias inventore. Dolorem rem ratione eius veniam et voluptas et.
 
-Magnam dolore rerum rerum nemo vel. Laborum aut consequatur error. Vel et fuga voluptatibus iure. Molestias quae laborum beatae pariatur qui dolorem. Incidunt ratione dolores totam facere qui nesciunt. Rerum quia aut ut et corporis sit nostrum quia." />
+        Magnam dolore rerum rerum nemo vel. Laborum aut consequatur error. Vel et fuga voluptatibus iure. Molestias quae laborum beatae pariatur qui dolorem. Incidunt ratione dolores totam facere qui nesciunt. Rerum quia aut ut et corporis sit nostrum quia." />
 
+        <TextView
+            android:id="@+id/trailer_caption"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/trailer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/half_screen" />
+
+        <WebView
+            android:id="@+id/trailer"
+            android:background="@color/backgroundColor"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/trailer_caption" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

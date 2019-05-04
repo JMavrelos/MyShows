@@ -17,5 +17,6 @@
     <string name="error_loading_data">Error while loading watchlist data</string>
     <string name="error_delete_watchlist">There was a problem while removing from watchlist</string>
     <string name="error_show_not_found">Could not locate show in watchlist</string>
+    <string name="trailer">Trailer</string>
 
 </resources>

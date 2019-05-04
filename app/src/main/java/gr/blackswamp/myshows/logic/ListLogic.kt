@@ -5,7 +5,7 @@ import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBService
 import gr.blackswamp.myshows.data.db.AppDatabase
 import gr.blackswamp.myshows.logic.model.Show
-import gr.blackswamp.myshows.logic.model.ShowDetails
+
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import gr.blackswamp.myshows.util.ISchedulers
 import io.reactivex.Observable
@@ -13,6 +13,7 @@ import io.reactivex.disposables.CompositeDisposable
 
 class ListLogic(private val vm: IMainViewModel, private val service: MovieDBService, private val db: AppDatabase, private val schedulers: ISchedulers) : IListLogic {
     companion object {
+        @Suppress("unused")
         const val TAG = "ListLogic"
     }
 
@@ -91,9 +92,17 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         }
     }
 
-    override fun showSelected(id: Int, isMovie: Boolean) {
+    override fun showSelected(id: Int, fromShowList: Boolean) {
         vm.showLoading(true)
-        doLoadShowDetails(id, isMovie)
+        val show: Show? = if (fromShowList) showList.firstOrNull { it.id == id } else watchList.firstOrNull { it.id == id }
+        @Suppress("CascadeIf")
+        if (show == null) {
+            gotError(R.string.error_show_not_found, null)
+        } else if (fromShowList) {
+            doLoadShowDetails(show)
+        } else {
+            gotDetails(show)
+        }
     }
 
 
@@ -134,14 +143,14 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         )
     }
 
-    private fun doLoadShowDetails(id: Int, movie: Boolean) {
-        if (movie)
+    private fun doLoadShowDetails(show: Show) {
+        if (show.isMovie)
             disposables.add(
                 service
-                    .getMovieDetails(id)
+                    .getMovieDetails(show.id)
                     .subscribeOn(schedulers.subscribeScheduler)
                     .observeOn(schedulers.observeScheduler)
-                    .map { ShowDetails(it, true) }
+                    .map { Show(show, it) }
                     .subscribe(
                         { gotDetails(it) }
                         , { gotError(R.string.error_retrieving_data, it) }
@@ -150,10 +159,10 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         else
             disposables.add(
                 service
-                    .getTvDetails(id)
+                    .getTvDetails(show.id)
                     .subscribeOn(schedulers.subscribeScheduler)
                     .observeOn(schedulers.observeScheduler)
-                    .map { ShowDetails(it, false) }
+                    .map { Show(show, it) }
                     .subscribe(
                         { gotDetails(it) }
                         , { gotError(R.string.error_retrieving_data, it) }
@@ -228,7 +237,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         vm.showLoading(false)
     }
 
-    private fun gotDetails(detail: ShowDetails) {
+    private fun gotDetails(detail: Show) {
         vm.showDetails(detail)
         vm.showLoading(false)
     }

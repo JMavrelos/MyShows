@@ -1,9 +1,9 @@
 package gr.blackswamp.myshows.logic
 
 interface IListLogic {
-    fun searchShows(newFilter:String)
+    fun searchShows(newFilter: String)
     fun clear()
-    fun showSelected(id: Int, isMovie: Boolean)
+    fun showSelected(id: Int, fromShowList: Boolean)
     fun refreshData()
     fun displayShowList()
     fun displayWatchList()

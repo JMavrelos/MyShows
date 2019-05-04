@@ -8,5 +8,4 @@ interface ShowDetailVO {
     val genre: String
     val isMovie: Boolean
     val trailer: String?
-    val trailerName: String?
 }

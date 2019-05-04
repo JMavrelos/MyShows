@@ -91,7 +91,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
             adapter.allowSwipe = !it
             refresh.isEnabled = it
         })
-
+        viewModel.loading.observe(this, Observer { if (!it) refresh.isRefreshing = false })
         viewModel.listTitle.observe(this, Observer { (activity as AppCompatActivity).title = it })
         viewModel.canGoToShows.observe(this, Observer { shows?.isVisible = it })
         viewModel.canGoToWatchlist.observe(this, Observer { watchList?.isVisible = it })
@@ -168,12 +168,14 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
 
     class ScrollListener(private val observable: MutableLiveData<Boolean>) : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            scrolled(recyclerView,observable)
+            scrolled(recyclerView, observable)
         }
+
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             scrolled(recyclerView, observable)
         }
-        private fun scrolled(recyclerView: RecyclerView, event: MutableLiveData<Boolean>){
+
+        private fun scrolled(recyclerView: RecyclerView, event: MutableLiveData<Boolean>) {
             val lastVisible = ((recyclerView.layoutManager as? LinearLayoutManager)?.findLastCompletelyVisibleItemPosition() ?: -2)
             val itemCount = (recyclerView.adapter?.itemCount ?: 0) - 1
             val newValue = lastVisible == itemCount
@@ -192,6 +194,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         val displayingShowList: LiveData<Boolean>
         val listTitle: LiveData<String>
         val searchFilter: LiveData<String>
+        val loading: LiveData<Boolean>
 
         fun select(show: ShowVO)
         fun delete(show: ShowVO)
