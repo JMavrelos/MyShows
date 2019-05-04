@@ -12,5 +12,5 @@
     <color name="panelColor">#E1E2E1</color>
     <color name="textColor">#000000</color>
 
-    <color name="inWatchlistColor">#00ff00</color>
+    <color name="inWatchlistColor">#00bb00</color>
 </resources>

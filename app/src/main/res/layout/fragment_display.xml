@@ -33,7 +33,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:src="@drawable/im" />
+            tools:src="@drawable/ic_image" />
 
         <TextView
             android:id="@+id/genre_caption"
@@ -97,6 +97,7 @@ Magnam dolore rerum rerum nemo vel. Laborum aut consequatur error. Vel et fuga v
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_margin="@dimen/fab_margin"
-        tools:src="@drawable/ic_favourite_border" />
+        android:src="@drawable/ic_watch_later"
+        android:tint="@color/secondaryTextColor" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

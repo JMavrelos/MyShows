@@ -9,10 +9,14 @@ class App : Application() {
     companion object {
         lateinit var database: AppDatabase
             private set
+        lateinit var application: App
+        val context
+            get() = application.applicationContext
     }
 
     override fun onCreate() {
         super.onCreate()
         database = Room.databaseBuilder(applicationContext, LocalDatabase::class.java, "myshows.db").build()
+        application = this
     }
 }

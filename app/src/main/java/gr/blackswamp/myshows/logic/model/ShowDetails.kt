@@ -15,7 +15,7 @@ data class ShowDetails(
     , override val trailerName: String?) : ShowDetailVO {
     constructor(details: ShowDetailAO, isMovie: Boolean) : this(
         details.id
-        , details.title ?: "N/A"
+        , (if (isMovie) details.title else details.name) ?: "N/A"
         , details.poster?.let { MovieDBClient.IMAGE_URL + it }
         , details.summary ?: "N/A"
         , details.genres?.firstOrNull()?.name ?: "N/A"

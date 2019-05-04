@@ -14,6 +14,7 @@ import io.reactivex.Observable
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import java.util.*
 import kotlin.random.Random
@@ -105,6 +106,31 @@ class ListLogicTest {
     }
 
     @Test
+    fun checkThatStateDoesNotChangeWhenNoResultQueryIsSent(){
+        val expectedFilter ="111"
+        val expectedPage = 1
+        val expectedMax = 10
+        val incorrectFilter = "12jhj3k123"
+        whenever(service.getShows(expectedFilter,1))
+            .thenReturn(Observable.just(ShowListAO(1,expectedPage,buildApiShows(30),expectedMax)))
+
+        whenever(service.getShows(incorrectFilter, 1))
+            .thenReturn(Observable.just(ShowListAO(1, -3, listOf(), 1)))
+
+        logic.searchShows(expectedFilter)
+        verify(vm,never()).showError(anyInt(),any())
+        logic.searchShows(incorrectFilter)
+        verify(vm).showError(R.string.error_no_results)
+        assertEquals(expectedFilter,logic.showFilter)
+        assertEquals(expectedPage,logic.page)
+        assertEquals(expectedMax,logic.maxPages)
+
+        verify(vm,times(2)).showLoading(true)
+        verify(vm,times(2)).showLoading(false)
+    }
+
+
+    @Test
     fun whenListIsRetrievedShowMessage() {
         val expectedFilter = "12jhj3k123"
         val all = buildApiShows(30)
@@ -184,7 +210,7 @@ class ListLogicTest {
     @Test
     fun whenUserSelectsShowDisplayDetails() {
         val id = 123
-        val expected = ShowDetailAO(id, null, "", "", listOf(), VideosAO(listOf()))
+        val expected = ShowDetailAO(id, null, randomString(10), randomString(10), randomString(100), listOf(), VideosAO(listOf()))
         whenever(service.getMovieDetails(id)).thenReturn(Observable.just(expected))
 
         logic.showSelected(id, true)
@@ -452,7 +478,7 @@ class ListLogicTest {
     }
 
     private fun buildApiShow(id: Int, type: String) =
-        ShowAO(id, null, Date(rnd.nextLong()).toString(), Date(rnd.nextLong()).toString(), type, "$type $id", rnd.nextDouble(10.0))
+        ShowAO(id, null, Date(rnd.nextLong()).toString(), Date(rnd.nextLong()).toString(), type, "$type $id", "$type $id", rnd.nextDouble(10.0))
 
     private fun buildDbShows(count: Int, startId: Int = 0): List<ShowDO> =
         (startId until startId + count).map { buildDbShow(it, rnd.nextInt(2) == 1) }

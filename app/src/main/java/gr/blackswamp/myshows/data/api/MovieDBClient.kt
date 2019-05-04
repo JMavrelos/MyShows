@@ -1,5 +1,6 @@
 package gr.blackswamp.myshows.data.api
 
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -15,8 +16,9 @@ object MovieDBClient {
     val service: MovieDBService
 
     init {
-        val loggingInterceptor = HttpLoggingInterceptor() //create a new interceptor
-        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY //we are logging the body
+        //create a new interceptor
+        val loggingInterceptor = HttpLoggingInterceptor { Log.d("Service", it) } //create a logger that prints to debug
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY //we are logging everything
         val okHttpClient = OkHttpClient //build http client
             .Builder()
             .addInterceptor(loggingInterceptor) //attach interceptor

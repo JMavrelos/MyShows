@@ -63,13 +63,12 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             return
         }
         vm.showLoading(true)
-        showFilter = ""
-        doSearchShows(newFilter, 1)
+        doSearchShows("", newFilter, 1)
     }
 
     override fun loadNextShows() {
         vm.showLoading(true)
-        doSearchShows(showFilter, page + 1)
+        doSearchShows(showFilter, showFilter, page + 1)
     }
 
     override fun refreshData() = searchShows(showFilter)
@@ -121,7 +120,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     }
 
 
-    private fun doSearchShows(newFilter: String, page: Int) {
+    private fun doSearchShows(currentFilter: String, newFilter: String, page: Int) {
         disposables.add(
             service
                 .getShows(newFilter, page)
@@ -129,7 +128,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 .observeOn(schedulers.observeScheduler)
                 .map { result -> Pair(result.pages, result.results.asSequence().filter { it.media_type != "person" }.map { Show(it) }.toList()) }
                 .subscribe(
-                    { gotShows(newFilter, page, it.first, it.second) }
+                    { gotShows(currentFilter, newFilter, page, it.first, it.second) }
                     , { gotError(R.string.error_retrieving_data, it) }
                 )
         )
@@ -185,21 +184,22 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         vm.showLoading(false)
     }
 
-    private fun gotShows(newFilter: String, loadedPage: Int, pages: Int, results: List<Show>) {
-        maxPages = pages
-        if (results.isEmpty() && maxPages == 1) {
+    private fun gotShows(currentFilter: String, newFilter: String, loadedPage: Int, pages: Int, results: List<Show>) {
+        if (results.isEmpty() && pages == 1) {
             vm.showError(R.string.error_no_results)
             vm.showLoading(false)
             return
-        } else if (results.isEmpty() && loadedPage >= maxPages) {
+        } else if (results.isEmpty() && loadedPage >= pages) {
             vm.showError(R.string.error_no_more_shows)
             vm.showLoading(false)
             return
         } else if (results.isEmpty()) {
             page = loadedPage
-            doSearchShows(newFilter, page + 1)
-        } else if (newFilter != showFilter) { //this means we made a new searchFilter
+            maxPages = pages
+            doSearchShows(currentFilter, newFilter, page + 1)
+        } else if (newFilter != currentFilter) { //this means we made a new searchFilter
             page = loadedPage
+            maxPages = pages
             showFilter = newFilter
             showList.clear()
             showList.addAll(results)
@@ -207,6 +207,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             vm.showLoading(false)
         } else { //this means we are continuing with our previous searchFilter
             page = loadedPage
+            maxPages = pages
             showList.addAll(results)
             vm.setShows(showList.map { it.copy() }, page < maxPages, showFilter)
             vm.showLoading(false)

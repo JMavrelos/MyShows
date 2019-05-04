@@ -20,6 +20,7 @@ data class ShowDetailAO(
     @SerializedName("id") val id: Int
     , @SerializedName("poster_path") val poster: String?
     , @SerializedName("title") val title: String?
+    , @SerializedName("name") val name: String?
     , @SerializedName("overview") val summary: String?
     , @SerializedName("genres") val genres: List<GenreAO>?
     , @SerializedName("videos") val videos: VideosAO?

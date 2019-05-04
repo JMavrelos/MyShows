@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -17,6 +19,7 @@ import gr.blackswamp.myshows.ui.adapters.ShowAdapter
 import gr.blackswamp.myshows.ui.adapters.ShowAdapterCallback
 import gr.blackswamp.myshows.ui.model.ShowVO
 import gr.blackswamp.myshows.ui.viewmodel.MainViewModel
+import gr.blackswamp.myshows.util.MediatorPairLiveData
 
 class ListFragment : Fragment(), SearchView.OnQueryTextListener {
 
@@ -27,7 +30,6 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     //region bindings
-//    private lateinit var toolbar: Toolbar
     private lateinit var list: RecyclerView
     private lateinit var adapter: ShowAdapter
     private lateinit var callback: ShowAdapterCallback
@@ -37,6 +39,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private var shows: MenuItem? = null
     private lateinit var loadMore: FloatingActionButton
     //endregion
+    private lateinit var movedToLast: MutableLiveData<Boolean>
     private lateinit var viewModel: ListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,12 +54,13 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         return view
     }
 
+
     private fun setUpBindings(view: View) {
         Log.d(TAG, "set up bindings")
-//        toolbar = view.findViewById(R.id.toolbar)
         list = view.findViewById(R.id.shows)
         refresh = view.findViewById(R.id.refresh)
         loadMore = view.findViewById(R.id.load_more)
+        movedToLast = MutableLiveData()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,18 +96,24 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         viewModel.canGoToShows.observe(this, Observer { shows?.isVisible = it })
         viewModel.canGoToWatchlist.observe(this, Observer { watchList?.isVisible = it })
         viewModel.searchFilter.observe(this, Observer { (search?.actionView as? SearchView)?.setQuery(it, false) })
-        viewModel.canLoadMore.observe(this, Observer {
-            if (it)
-                loadMore.show()
-            else
-                loadMore.hide()
-        })
+
+        MediatorPairLiveData<Boolean, Boolean, Boolean>(viewModel.canLoadMore, movedToLast) { c, m ->
+            c ?: false && m ?: false
+        }.observe(
+            this, Observer {
+                Log.d(TAG, "scroll value changed")
+                if (it)
+                    loadMore.show()
+                else
+                    loadMore.hide()
+            })
     }
 
     private fun setUpListeners() {
         Log.d(TAG, "set up listeners")
         refresh.setOnRefreshListener { viewModel.refresh() }
         loadMore.setOnClickListener { viewModel.loadNext() }
+        list.addOnScrollListener(ScrollListener(movedToLast))
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -114,12 +124,10 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         watchList = menu.findItem(R.id.watchlist)
         (search!!.actionView as SearchView).let {
             it.setOnQueryTextListener(this)
-            it.setOnSearchClickListener { v ->
+            it.setOnSearchClickListener { _ ->
                 viewModel.searchFilter.value?.let { search -> it.setQuery(search, false) }
             }
         }
-
-
 
         viewModel.searchFilter.value?.let {
             (search?.actionView as? SearchView)?.setQuery(it, false)
@@ -143,6 +151,12 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        list.clearOnScrollListeners()
+    }
+
+
     override fun onQueryTextSubmit(query: String): Boolean {
         Log.d(TAG, "submitted $query")
         viewModel.searchItems(query)
@@ -151,6 +165,24 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onQueryTextChange(newText: String): Boolean = false
+
+    class ScrollListener(private val observable: MutableLiveData<Boolean>) : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            scrolled(recyclerView,observable)
+        }
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            scrolled(recyclerView, observable)
+        }
+        private fun scrolled(recyclerView: RecyclerView, event: MutableLiveData<Boolean>){
+            val lastVisible = ((recyclerView.layoutManager as? LinearLayoutManager)?.findLastCompletelyVisibleItemPosition() ?: -2)
+            val itemCount = (recyclerView.adapter?.itemCount ?: 0) - 1
+            val newValue = lastVisible == itemCount
+            Log.d(TAG, "Old Value ${event.value} new Value $newValue last visible $lastVisible item count $itemCount")
+            if (newValue != event.value)
+                event.postValue(newValue)
+        }
+    }
+
 
     interface ListViewModel {
         val showList: LiveData<List<ShowVO>>

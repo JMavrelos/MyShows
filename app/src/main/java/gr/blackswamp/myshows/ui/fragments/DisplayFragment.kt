@@ -3,7 +3,9 @@ package gr.blackswamp.myshows.ui.fragments
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.Toolbar
@@ -14,6 +16,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import gr.blackswamp.myshows.App
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
 import gr.blackswamp.myshows.ui.viewmodel.MainViewModel
@@ -32,7 +35,7 @@ class DisplayFragment : Fragment() {
     private lateinit var watchLater: FloatingActionButton
     //endregion
 
-    lateinit var viewModel: ShowViewModel
+    private lateinit var viewModel: ShowViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,21 +70,12 @@ class DisplayFragment : Fragment() {
         viewModel.showInWatchlist.observe(this, Observer { updateAction(it) })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return super.onOptionsItemSelected(item)
-    }
-
     private fun updateAction(watchLater: Boolean?) {
         if (watchLater == true) {
             this.watchLater.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!, R.color.inWatchlistColor))
         } else {
             this.watchLater.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!, R.color.secondaryColor))
         }
-        this.watchLater.setImageResource(if (watchLater == true) R.drawable.ic_favourite else R.drawable.ic_favourite_border)
     }
 
     private fun showDetail(show: ShowDetailVO?) {
@@ -91,9 +85,11 @@ class DisplayFragment : Fragment() {
                 .load(show.image)
                 .error(R.drawable.ic_broken_image)
                 .placeholder(R.drawable.ic_sync)
+                .fallback(R.drawable.ic_image)
                 .into(poster)
         } else {
-            poster.setImageResource(R.drawable.im)
+            poster.setImageResource(R.drawable.ic_image)
+            poster.imageTintList = ContextCompat.getColorStateList(App.context, R.color.secondaryColor)
         }
         genre.text = show.genre
         toolbar.title = show.title
