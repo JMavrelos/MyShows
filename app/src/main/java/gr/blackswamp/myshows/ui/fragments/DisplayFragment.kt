@@ -3,10 +3,10 @@ package gr.blackswamp.myshows.ui.fragments
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.Toolbar
@@ -17,21 +17,26 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.youtube.player.YouTubeInitializationResult
+import com.google.android.youtube.player.YouTubePlayer
+import com.google.android.youtube.player.YouTubePlayerFragment
+import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import gr.blackswamp.myshows.App
+import gr.blackswamp.myshows.BuildConfig
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
 import gr.blackswamp.myshows.ui.viewmodel.MainViewModel
 
-class DisplayFragment : Fragment() {
+class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
     companion object {
         const val TAG = "DisplayFragment"
         fun newInstance(): DisplayFragment = DisplayFragment()
-        const val NO_VIDEO_HTML = "<!doctype html>\n" +
-                "<html lang=\"en\">\n" +
-                "<body>\n" +
-                "<header style=\"position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);\"> No trailer exists for this Show</header>\n" +
-                "</body>\n" +
-                "</html>\n"
+//        const val NO_VIDEO_HTML = "<!doctype html>\n" +
+//                "<html lang=\"en\">\n" +
+//                "<body>\n" +
+//                "<header style=\"position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);\"> No trailer exists for this Show</header>\n" +
+//                "</body>\n" +
+//                "</html>\n"
     }
 
     //region bindings
@@ -40,7 +45,7 @@ class DisplayFragment : Fragment() {
     private lateinit var genre: TextView
     private lateinit var summary: TextView
     private lateinit var watchLater: FloatingActionButton
-    private lateinit var trailer: WebView
+    private lateinit var trailer: YouTubePlayerSupportFragment
     //endregion
 
     private lateinit var viewModel: ShowViewModel
@@ -53,18 +58,27 @@ class DisplayFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(R.layout.fragment_display, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        Log.d(TAG,"view created")
         toolbar = view.findViewById(R.id.toolbar)
         poster = view.findViewById(R.id.poster)
         genre = view.findViewById(R.id.genre)
         summary = view.findViewById(R.id.summary)
         watchLater = view.findViewById(R.id.watch_later)
-        trailer = view.findViewById(R.id.trailer)
         summary.movementMethod = ScrollingMovementMethod()
+
+        if (savedInstanceState == null) {
+            trailer = YouTubePlayerSupportFragment.newInstance()
+            childFragmentManager.beginTransaction().replace(R.id.trailer, trailer as Fragment).commit()
+        } else {
+            trailer = childFragmentManager.findFragmentById(R.id.trailer) as YouTubePlayerSupportFragment
+        }
+
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(activity!!).get(MainViewModel::class.java)
+//        trailer = (activity!!).fragmentManager.findFragmentById(R.id.trailer) as YouTubePlayerFragment
         setUpObservers()
         setUpListeners()
     }
@@ -100,16 +114,29 @@ class DisplayFragment : Fragment() {
             poster.setImageResource(R.drawable.ic_image)
             poster.imageTintList = ContextCompat.getColorStateList(App.context, R.color.secondaryColor)
         }
+
         genre.text = show.genre
         toolbar.title = show.title
         summary.text = show.summary
 
 
-        if (show.trailer == null) {
-            trailer.loadData(NO_VIDEO_HTML,null,null)
-        } else {
-
+        if (show.trailer != null) {
+            trailer.initialize(BuildConfig.YoutubeApiKey, this)
         }
+    }
+
+    override fun onInitializationSuccess(provider: YouTubePlayer.Provider?, player: YouTubePlayer?, wasRestored: Boolean) {
+        if (!wasRestored) {
+            val show = viewModel.show.value ?: return
+            if (show.trailer != null) {
+                player?.cueVideo(show.trailer)
+            }
+        }
+
+    }
+
+    override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
+        //do nothing
     }
 
     interface ShowViewModel {

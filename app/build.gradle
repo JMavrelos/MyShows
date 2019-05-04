@@ -21,66 +21,59 @@ android {
         debug {
             buildConfigField 'String', "ApiKey", MyShows_ApiKey
             resValue 'string', "api_key", MyShows_ApiKey
+            buildConfigField 'String', "YoutubeApiKey", MyShows_Youtube_ApiKey
+            resValue 'string', "youtube_api_key", MyShows_Youtube_ApiKey
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'String', "ApiKey", MyShows_ApiKey
             resValue 'string', "api_key", MyShows_ApiKey
+            buildConfigField 'String', "YoutubeApiKey", MyShows_Youtube_ApiKey
+            resValue 'string', "youtube_api_key", MyShows_Youtube_ApiKey
         }
     }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     // Kotlin
     implementation deps.kotlin.stdlib
     implementation deps.kotlin.reflect
-
     // Support libraries
     implementation deps.support.app_compat
     implementation deps.support.v4
     implementation deps.support.design
     implementation deps.support.cardview
     implementation deps.constraint_layout
-
     // Architecture components
     implementation deps.lifecycle.runtime
     implementation deps.lifecycle.extensions
     kapt deps.lifecycle.compiler
     testImplementation deps.arch_core.testing
-
     // GSon
     implementation deps.gson
-
     // Retrofit
     implementation deps.retrofit.runtime
     implementation deps.retrofit.gson
     implementation deps.retrofit.adapter
-
     // Glide
     implementation deps.glide.runtime
     kapt deps.glide.compiler
-
     // Okhttp
     implementation deps.okhttp_logging_interceptor
-
     // Rxjava
     implementation deps.rxjava2
     implementation deps.rx_android
-
     // Mockito
     testImplementation deps.mockito.core
-
     // Junit
     testImplementation deps.junit
-
     // Room
     implementation deps.room.runtime
     implementation deps.room.rxjava2
     kapt deps.room.compiler
-
+    implementation files('libs/YouTubeAndroidPlayerApi.jar')
 }
 
 repositories {

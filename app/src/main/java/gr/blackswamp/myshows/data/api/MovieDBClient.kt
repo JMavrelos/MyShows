@@ -12,7 +12,7 @@ object MovieDBClient {
     private const val URL = "https://api.themoviedb.org/3/"
     internal const val THUMBNAIL_URL = "http://image.tmdb.org/t/p/w92"
     internal const val IMAGE_URL = "http://image.tmdb.org/t/p/original"
-    internal const val YOUTUBE_URL = "https://www.youtube.com/watch?v="
+//    internal const val YOUTUBE_URL = "https://www.youtube.com/watch?v="
     val service: MovieDBService
 
     init {

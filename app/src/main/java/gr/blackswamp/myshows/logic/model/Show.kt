@@ -42,7 +42,7 @@ data class Show(override val id: Int
                 , show.rating
                 , show.release
                 , show.isMovie
-                , details.summary ?: "N/A", details.genres?.firstOrNull()?.name ?: "N/A", details.videos?.results?.firstOrNull { it.site == "YouTube" && it.type == "Trailer" }?.let { MovieDBClient.YOUTUBE_URL + it.key })
+                , details.summary ?: "N/A", details.genres?.firstOrNull()?.name ?: "N/A", details.videos?.results?.firstOrNull { it.site == "YouTube" && it.type == "Trailer" }?.let { /*MovieDBClient.YOUTUBE_URL + */it.key })
 }
 
 val ShowAO.isMovie get() = (this.media_type == "movie")

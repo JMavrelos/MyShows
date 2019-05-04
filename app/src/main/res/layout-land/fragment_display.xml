@@ -25,6 +25,19 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+
+        <FrameLayout
+            android:id="@+id/trailer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/margin"
+            android:background="@color/backgroundColor"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/poster"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/half_screen"
             android:layout_width="0dp"
@@ -38,32 +51,12 @@
             android:layout_height="0dp"
             android:padding="@dimen/padding"
             app:layout_constraintBottom_toTopOf="@+id/half_screen"
-            app:layout_constraintEnd_toStartOf="@+id/trailer_caption"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/trailer"
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@drawable/ic_image" />
 
-        <TextView
-            android:id="@+id/trailer_caption"
-            style="@style/TextAppearance.MaterialComponents.Headline6"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/trailer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@+id/poster"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <WebView
-            android:id="@+id/trailer"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@color/backgroundColor"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/trailer_caption"
-            app:layout_constraintTop_toBottomOf="@+id/trailer_caption" />
 
         <TextView
             android:id="@+id/genre_caption"
@@ -72,7 +65,7 @@
             android:layout_height="wrap_content"
             android:text="@string/genre"
             app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/poster"
             app:layout_constraintTop_toBottomOf="@+id/poster" />
 
         <TextView
@@ -82,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin"
             app:layout_constraintEnd_toEndOf="@+id/genre_caption"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/poster"
             app:layout_constraintTop_toBottomOf="@+id/genre_caption"
             tools:text="Action/Comedy" />
 
@@ -94,7 +87,7 @@
             android:width="0dp"
             android:text="@string/summary"
             app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="@id/poster"
+            app:layout_constraintStart_toStartOf="@+id/poster"
             app:layout_constraintTop_toBottomOf="@+id/genre" />
 
         <TextView
@@ -105,7 +98,7 @@
             android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/poster"
 
             app:layout_constraintTop_toBottomOf="@id/summary_caption"
             tools:text="Est possimus consectetur officiis rerum deleniti ut expedita quis. Itaque aut et veniam sit saepe fugiat magnam. Quos fugiat sint dolor modi error voluptatem.
@@ -125,9 +118,11 @@
         android:id="@+id/watch_later"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
+        android:layout_gravity="end|start"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_watch_later"
-        android:tint="@color/secondaryTextColor" />
+        android:tint="@color/secondaryTextColor"
+        app:layout_anchor="@+id/summary"
+        app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
