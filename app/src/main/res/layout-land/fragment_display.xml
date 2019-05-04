@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:theme="@style/AppTheme.Toolbar"
+            app:navigationIcon="@drawable/ic_back_navigation"
+            tools:title="This is a movie" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/poster"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/im" />
+
+        <TextView
+            android:id="@+id/genre_caption"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/genre"
+            app:layout_constraintStart_toEndOf="@+id/poster"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/genre"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin"
+            app:layout_constraintBottom_toBottomOf="@id/genre_caption"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/genre_caption"
+            app:layout_constraintTop_toBottomOf="@id/summary_caption"
+            app:layout_constraintTop_toTopOf="@id/genre_caption"
+            tools:text="Action/Comedy" />
+
+        <TextView
+            android:id="@+id/summary_caption"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:width="0dp"
+            android:text="@string/summary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/poster"
+            app:layout_constraintTop_toBottomOf="@+id/genre_caption" />
+
+        <TextView
+            android:id="@+id/summary"
+            style="@style/TextAppearance.MaterialComponents.Body2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/poster"
+            app:layout_constraintTop_toBottomOf="@id/summary_caption"
+            tools:text="Est possimus consectetur officiis rerum deleniti ut expedita quis. Itaque aut et veniam sit saepe fugiat magnam. Quos fugiat sint dolor modi error voluptatem.
+
+Id voluptatem aliquam aspernatur tempora cum. Ipsum quaerat aut vel iusto cumque. Unde magnam quasi veniam. Et ipsa fugit recusandae assumenda deserunt. Odio officia quia et voluptatem praesentium qui odit. Fugiat repellat vero et itaque eos.
+
+Corporis in illum placeat inventore quae repellendus eius possimus. Dolores suscipit incidunt temporibus. Necessitatibus eos aut natus distinctio. Vel eveniet ut aliquid cumque rerum. Velit blanditiis rem dolores placeat.
+
+Rem illum cumque corrupti suscipit vel. Animi excepturi et aut. Dolor delectus facere aut impedit tempore consequatur quia est. Provident adipisci alias inventore. Dolorem rem ratione eius veniam et voluptas et.
+
+Magnam dolore rerum rerum nemo vel. Laborum aut consequatur error. Vel et fuga voluptatibus iure. Molestias quae laborum beatae pariatur qui dolorem. Incidunt ratione dolores totam facere qui nesciunt. Rerum quia aut ut et corporis sit nostrum quia." />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/watch_later"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        tools:src="@drawable/ic_watch_later" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

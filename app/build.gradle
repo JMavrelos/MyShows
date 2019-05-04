@@ -1,0 +1,94 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion build_versions.target_sdk
+    buildToolsVersion build_versions.build_tools
+
+    defaultConfig {
+        applicationId "gr.blackswamp.movies"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+        javaCompileOptions.annotationProcessorOptions.arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+    }
+    buildTypes {
+        debug {
+            buildConfigField 'String', "ApiKey", MyShows_ApiKey
+            resValue 'string', "api_key", MyShows_ApiKey
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField 'String', "ApiKey", MyShows_ApiKey
+            resValue 'string', "api_key", MyShows_ApiKey
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // Kotlin
+    implementation deps.kotlin.stdlib
+    implementation deps.kotlin.reflect
+
+    // Support libraries
+    implementation deps.support.app_compat
+    implementation deps.support.v4
+    implementation deps.support.design
+    implementation deps.support.cardview
+    implementation deps.constraint_layout
+
+    // Architecture components
+    implementation deps.lifecycle.runtime
+    implementation deps.lifecycle.extensions
+    kapt deps.lifecycle.compiler
+    testImplementation deps.arch_core.testing
+
+    // GSon
+    implementation deps.gson
+
+    // Retrofit
+    implementation deps.retrofit.runtime
+    implementation deps.retrofit.gson
+    implementation deps.retrofit.adapter
+
+    // Glide
+    implementation deps.glide.runtime
+    kapt deps.glide.compiler
+
+    // Okhttp
+    implementation deps.okhttp_logging_interceptor
+
+    // Rxjava
+    implementation deps.rxjava2
+    implementation deps.rx_android
+
+    // Mockito
+    testImplementation deps.mockito.core
+
+    // Junit
+    testImplementation deps.junit
+
+    // Room
+    implementation deps.room.runtime
+    implementation deps.room.rxjava2
+    kapt deps.room.compiler
+
+}
+
+repositories {
+    mavenCentral()
+}
+
+//gradle.projectsEvaluated {
+//    tasks.withType(JavaCompile) {
+//        options.compilerArgs << "-Xlint:deprecation"
+//    }
+//}

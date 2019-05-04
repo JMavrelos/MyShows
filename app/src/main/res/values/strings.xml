@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">My Shows</string>
+    <string name="search">Search</string>
+    <string name="watchlist">Watch List</string>
+    <string name="goto_shows">Go To Shows</string>
+    <string name="goto_watchlist">Go To Watchlist</string>
+    <string name="release_date">Release Date:</string>
+    <string name="error_invalid_filter">Search filter must be at least one character long</string>
+    <string name="error_retrieving_data">Error while retrieving data from source, please try again</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="rating">Rating:</string>
+    <string name="error_no_more_shows">No more shows could be loaded, try a different search query</string>
+    <string name="error_no_results">No results were found, please try another search query</string>
+    <string name="summary">Summary</string>
+    <string name="genre">Genre</string>
+    <string name="error_no_watchlist">Please add items to watchlist first</string>
+    <string name="error_loading_data">Error while loading watchlist data</string>
+    <string name="error_delete_watchlist">There was a problem while removing from watchlist</string>
+    <string name="error_show_not_found">Could not locate show in watchlist</string>
+
+</resources>
