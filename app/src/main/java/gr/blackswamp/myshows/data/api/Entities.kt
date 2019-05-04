@@ -12,6 +12,7 @@ data class ShowAO(
     , @SerializedName("first_air_date") val air_date: String?
     , @SerializedName("media_type") val media_type: String
     , @SerializedName("title") val title: String?
+    , @SerializedName("name") val name: String?
     , @SerializedName("vote_average") val votes: Double?
 )
 

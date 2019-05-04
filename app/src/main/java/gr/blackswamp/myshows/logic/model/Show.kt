@@ -19,8 +19,10 @@ data class Show(override val id: Int
     constructor(show: ShowAO) :
             this(show.id
                 , show.poster?.let { MovieDBClient.THUMBNAIL_URL + it }
-                , show.title ?: "N/A"
+                , (if (show.isMovie) show.title else show.name) ?: "N/A"
                 , show.votes?.toString() ?: "N/A"
-                , (if (show.media_type == "movie") show.release else show.air_date) ?: "N/A"
-                , show.media_type == "movie")
+                , (if (show.isMovie) show.release else show.air_date) ?: "N/A"
+                , show.isMovie)
 }
+
+val ShowAO.isMovie get() = (this.media_type == "movie")

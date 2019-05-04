@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -28,7 +27,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     //region bindings
-    private lateinit var toolbar: Toolbar
+//    private lateinit var toolbar: Toolbar
     private lateinit var list: RecyclerView
     private lateinit var adapter: ShowAdapter
     private lateinit var callback: ShowAdapterCallback
@@ -54,7 +53,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private fun setUpBindings(view: View) {
         Log.d(TAG, "set up bindings")
-        toolbar = view.findViewById(R.id.toolbar)
+//        toolbar = view.findViewById(R.id.toolbar)
         list = view.findViewById(R.id.shows)
         refresh = view.findViewById(R.id.refresh)
         loadMore = view.findViewById(R.id.load_more)
@@ -73,7 +72,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         Log.d(TAG, "activity created")
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(activity!!).get(MainViewModel::class.java)
-        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        (activity as AppCompatActivity).setSupportActionBar(view!!.findViewById(R.id.toolbar))
         setUpObservers()
         setUpListeners()
     }
@@ -89,10 +88,10 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
             refresh.isEnabled = it
         })
 
-        viewModel.listTitle.observe(this, Observer { toolbar.title = it })
+        viewModel.listTitle.observe(this, Observer { (activity as AppCompatActivity).title = it })
         viewModel.canGoToShows.observe(this, Observer { shows?.isVisible = it })
         viewModel.canGoToWatchlist.observe(this, Observer { watchList?.isVisible = it })
-        viewModel.searchFilter.observe(this, Observer { (search?.actionView as SearchView).setQuery(it, false) })
+        viewModel.searchFilter.observe(this, Observer { (search?.actionView as? SearchView)?.setQuery(it, false) })
         viewModel.canLoadMore.observe(this, Observer {
             if (it)
                 loadMore.show()
@@ -113,8 +112,18 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         shows = menu.findItem(R.id.shows)
         search = menu.findItem(R.id.search)
         watchList = menu.findItem(R.id.watchlist)
-        (search!!.actionView as SearchView).setOnQueryTextListener(this)
+        (search!!.actionView as SearchView).let {
+            it.setOnQueryTextListener(this)
+            it.setOnSearchClickListener { v ->
+                viewModel.searchFilter.value?.let { search -> it.setQuery(search, false) }
+            }
+        }
 
+
+
+        viewModel.searchFilter.value?.let {
+            (search?.actionView as? SearchView)?.setQuery(it, false)
+        }
         shows!!.isVisible = viewModel.canGoToShows.value ?: false
         watchList!!.isVisible = viewModel.canGoToWatchlist.value ?: false
     }
