@@ -48,6 +48,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     private val listLogic: IListLogic = ListLogic(this, MovieDBClient.service, App.database, AppSchedulers) //object that handles the logic behind the list
     private val showLogic: IShowLogic = ShowLogic(this, App.database, AppSchedulers) //object that handles the logic behind the display
+
+    init {
+        canLoadMore.postValue(false)
+    }
+
     //region incoming from logic
     override fun showError(@StringRes messageId: Int, param: String?) =
         error.postValue(getApplication<Application>().getString(messageId, param))

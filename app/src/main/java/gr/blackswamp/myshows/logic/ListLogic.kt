@@ -3,11 +3,9 @@ package gr.blackswamp.myshows.logic
 import androidx.annotation.StringRes
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBService
-import gr.blackswamp.myshows.data.api.ShowAO
-import gr.blackswamp.myshows.data.api.ShowDetailAO
-import gr.blackswamp.myshows.data.api.ShowListAO
 import gr.blackswamp.myshows.data.db.AppDatabase
-import gr.blackswamp.myshows.data.db.ShowDO
+import gr.blackswamp.myshows.logic.model.Show
+import gr.blackswamp.myshows.logic.model.ShowDetails
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import gr.blackswamp.myshows.util.ISchedulers
 import io.reactivex.Observable
@@ -19,8 +17,8 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     }
 
     private val disposables = CompositeDisposable()
-    private val showList = mutableListOf<ShowAO>()
-    private val watchList = mutableListOf<ShowDO>()
+    private val showList = mutableListOf<Show>()
+    private val watchList = mutableListOf<Show>()
 
     var page = 0
         private set
@@ -43,6 +41,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 db.loadWatchlistMatching("")
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
+                .map { list -> list.map { Show(it) } }
                 .subscribe(
                     {
                         watchList.addAll(it)
@@ -128,8 +127,9 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 .getShows(newFilter, page)
                 .subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
+                .map { result -> Pair(result.pages, result.results.asSequence().filter { it.media_type != "person" }.map { Show(it) }.toList()) }
                 .subscribe(
-                    { gotShows(newFilter, page, it) }
+                    { gotShows(newFilter, page, it.first, it.second) }
                     , { gotError(R.string.error_retrieving_data, it) }
                 )
         )
@@ -142,8 +142,9 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                     .getMovieDetails(id)
                     .subscribeOn(schedulers.subscribeScheduler)
                     .observeOn(schedulers.observeScheduler)
+                    .map { ShowDetails(it, true) }
                     .subscribe(
-                        { gotDetails(it, true) }
+                        { gotDetails(it) }
                         , { gotError(R.string.error_retrieving_data, it) }
                     )
             )
@@ -153,8 +154,9 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                     .getTvDetails(id)
                     .subscribeOn(schedulers.subscribeScheduler)
                     .observeOn(schedulers.observeScheduler)
+                    .map { ShowDetails(it, false) }
                     .subscribe(
-                        { gotDetails(it, false) }
+                        { gotDetails(it) }
                         , { gotError(R.string.error_retrieving_data, it) }
                     )
             )
@@ -166,6 +168,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 db.loadWatchlistMatching(filter)
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
+                .map { list -> list.map { Show(it) } }
                 .subscribe(
                     { gotWatchList(filter, it) }
                     , { gotError(R.string.error_retrieving_data, it) }
@@ -182,9 +185,8 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         vm.showLoading(false)
     }
 
-    private fun gotShows(newFilter: String, loadedPage: Int, list: ShowListAO) {
-        val results = list.results.filter { it.media_type != "person" }
-        maxPages = list.pages
+    private fun gotShows(newFilter: String, loadedPage: Int, pages: Int, results: List<Show>) {
+        maxPages = pages
         if (results.isEmpty() && maxPages == 1) {
             vm.showError(R.string.error_no_results)
             vm.showLoading(false)
@@ -211,7 +213,7 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         }
     }
 
-    private fun gotWatchList(newFilter: String, list: List<ShowDO>) {
+    private fun gotWatchList(newFilter: String, list: List<Show>) {
         if (list.isEmpty() && !newFilter.isEmpty()) {
             vm.showError(R.string.error_no_results)
         } else if (list.isEmpty()) {
@@ -225,12 +227,10 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         vm.showLoading(false)
     }
 
-    private fun gotDetails(detail: ShowDetailAO, isMovie: Boolean) {
-        detail.isMovie = isMovie
+    private fun gotDetails(detail: ShowDetails) {
         vm.showDetails(detail)
         vm.showLoading(false)
     }
-
 
     override fun clear() {
         disposables.dispose()

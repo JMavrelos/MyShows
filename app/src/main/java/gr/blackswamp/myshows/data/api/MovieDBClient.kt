@@ -1,6 +1,7 @@
 package gr.blackswamp.myshows.data.api
 
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -14,11 +15,11 @@ object MovieDBClient {
     val service: MovieDBService
 
     init {
-//        val loggingInterceptor = HttpLoggingInterceptor() //create a new interceptor
-//        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY //we are logging the body
+        val loggingInterceptor = HttpLoggingInterceptor() //create a new interceptor
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY //we are logging the body
         val okHttpClient = OkHttpClient //build http client
             .Builder()
-//            .addInterceptor(loggingInterceptor) //attach interceptor
+            .addInterceptor(loggingInterceptor) //attach interceptor
             .readTimeout(5, TimeUnit.SECONDS) //set read timeout
             .connectTimeout(5, TimeUnit.SECONDS) //set connect timeout
             .build()

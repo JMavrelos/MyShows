@@ -7,6 +7,8 @@ import gr.blackswamp.myshows.data.api.*
 import gr.blackswamp.myshows.data.db.LocalDatabase
 import gr.blackswamp.myshows.data.db.ShowDO
 import gr.blackswamp.myshows.logic.ListLogic
+import gr.blackswamp.myshows.logic.model.Show
+import gr.blackswamp.myshows.logic.model.ShowDetails
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
@@ -48,7 +50,7 @@ class ListLogicTest {
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, expected, 4)))
         logic.searchShows(expectedFilter)
-        verify(vm).setShows(expected, true, expectedFilter)
+        verify(vm).setShows(expected.map { Show(it) }, true, expectedFilter)
 
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(1, logic.page)
@@ -77,7 +79,7 @@ class ListLogicTest {
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
         logic.searchShows(expectedFilter)
-        verify(vm).setShows(expected, false, expectedFilter)
+        verify(vm).setShows(expected.map { Show(it) }, false, expectedFilter)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(1, logic.page)
         verify(vm).showLoading(true)
@@ -95,7 +97,7 @@ class ListLogicTest {
         logic.searchShows(expectedFilter)
         logic.loadNextShows()
 
-        verify(vm).setShows(all.subList(0, 20), true, expectedFilter)
+        verify(vm).setShows(all.subList(0, 20).map { Show(it) }, true, expectedFilter)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(2, logic.page)
         verify(vm, times(2)).showLoading(true)
@@ -147,7 +149,7 @@ class ListLogicTest {
 
         logic.searchShows(expectedFilter)
 
-        verify(vm).setShows(expected, false, expectedFilter)
+        verify(vm).setShows(expected.map { Show(it) }, false, expectedFilter)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(3, logic.page)
         verify(vm).showLoading(true)
@@ -172,7 +174,7 @@ class ListLogicTest {
         logic.searchShows(expectedFilter)
         logic.loadNextShows()
 
-        verify(vm).setShows(all.filter { it.media_type != "person" }, false, expectedFilter)
+        verify(vm).setShows(all.asSequence().filter { it.media_type != "person" }.map { Show(it) }.toList(), false, expectedFilter)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(3, logic.page)
         verify(vm, times(2)).showLoading(true)
@@ -187,7 +189,7 @@ class ListLogicTest {
 
         logic.showSelected(id, true)
 
-        verify(vm).showDetails(expected)
+        verify(vm).showDetails(ShowDetails(expected, true))
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
     }
@@ -206,15 +208,15 @@ class ListLogicTest {
             .thenReturn(Observable.just(ShowListAO(1, 4, all.subList(30, 40), 4)))
 
         logic.searchShows(expectedFilter)
-        verify(vm).setShows(all.subList(0, 10), true, expectedFilter)
+        verify(vm).setShows(all.subList(0, 10).map { Show(it) }, true, expectedFilter)
         logic.loadNextShows()
-        verify(vm).setShows(all.subList(0, 20), true, expectedFilter)
+        verify(vm).setShows(all.subList(0, 20).map { Show(it) }, true, expectedFilter)
         logic.loadNextShows()
-        verify(vm).setShows(all.subList(0, 30), true, expectedFilter)
+        verify(vm).setShows(all.subList(0, 30).map { Show(it) }, true, expectedFilter)
         reset(vm)
 
         logic.refreshData()
-        verify(vm).setShows(all.subList(0, 10), true, expectedFilter)
+        verify(vm).setShows(all.subList(0, 10).map { Show(it) }, true, expectedFilter)
 
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(1, logic.page)
@@ -240,7 +242,7 @@ class ListLogicTest {
 
         logic.displayShowList()
 
-        verify(vm).showList(true, all, false, expectedFilter)
+        verify(vm).showList(true, all.map { Show(it) }, false, expectedFilter)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(1, logic.page)
         assertEquals(1, logic.maxPages)
@@ -311,7 +313,7 @@ class ListLogicTest {
         whenever(db.loadWatchlistMatching(expectedFilter)).thenReturn(expected)
 
         logic.searchWatchlist(expectedFilter)
-        verify(vm).setShows(expected, false, expectedFilter)
+        verify(vm).setShows(expected.map { Show(it) }, false, expectedFilter)
         assertEquals(expectedFilter, logic.watchFilter)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -355,7 +357,7 @@ class ListLogicTest {
             .thenReturn(all.filter { it != toDelete })
 
         logic.deleteItem(toDelete.id)
-        verify(vm).setShows(remaining, false, filter)
+        verify(vm).setShows(remaining.map { Show(it) }, false, filter)
         assertEquals(filter, logic.watchFilter)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -428,7 +430,7 @@ class ListLogicTest {
 
         logic.deleteItem(toDelete.id)
         verify(vm).showError(R.string.error_delete_watchlist)
-        verify(vm).setShows(all, false, "")
+        verify(vm).setShows(all.map { Show(it) }, false, "")
         assertEquals("", logic.watchFilter)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -450,13 +452,13 @@ class ListLogicTest {
     }
 
     private fun buildApiShow(id: Int, type: String) =
-        ShowAO(id, null, Date(rnd.nextLong()).toString(), type, "$type $id", rnd.nextDouble(10.0))
+        ShowAO(id, null, Date(rnd.nextLong()).toString(), Date(rnd.nextLong()).toString(), type, "$type $id", rnd.nextDouble(10.0))
 
     private fun buildDbShows(count: Int, startId: Int = 0): List<ShowDO> =
         (startId until startId + count).map { buildDbShow(it, rnd.nextInt(2) == 1) }
 
     private fun buildDbShow(id: Int, isMovie: Boolean) =
-        ShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", isMovie, null, rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString())
+        ShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", isMovie, null, rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null, null)
 
     private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 

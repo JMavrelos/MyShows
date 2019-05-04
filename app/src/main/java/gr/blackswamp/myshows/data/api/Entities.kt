@@ -1,45 +1,28 @@
 package gr.blackswamp.myshows.data.api
 
 import com.google.gson.annotations.SerializedName
-import gr.blackswamp.myshows.ui.model.ShowDetailVO
-import gr.blackswamp.myshows.ui.model.ShowVO
 
 
 data class GenreAO(@SerializedName("id") val id: Int, @SerializedName("listTitle") val name: String)
 
 data class ShowAO(
-    @SerializedName("id") override val id: Int
+    @SerializedName("id") val id: Int
     , @SerializedName("poster_path") val poster: String?
-    , @SerializedName("release_date") override val release: String
+    , @SerializedName("release_date") val release: String?
+    , @SerializedName("first_air_date") val air_date: String?
     , @SerializedName("media_type") val media_type: String
-    , @SerializedName("listTitle") override val title: String
-    , @SerializedName("vote_average") val votes: Double
-) : ShowVO {
-    override val isMovie: Boolean = (media_type == "movie")
-    override val thumbnail = poster?.let { MovieDBClient.THUMBNAIL_URL + poster }
-    override val rating = votes.toString()
-}
+    , @SerializedName("title") val title: String?
+    , @SerializedName("vote_average") val votes: Double?
+)
 
 data class ShowDetailAO(
-    @SerializedName("id") override val id: Int
+    @SerializedName("id") val id: Int
     , @SerializedName("poster_path") val poster: String?
-    , @SerializedName("listTitle") override val title: String
-    , @SerializedName("overview") override val summary: String
-    , @SerializedName("genres") val genres: List<GenreAO>
-    , @SerializedName("videos") val videos: VideosAO
-) : ShowDetailVO {
-    override val image = poster?.let { MovieDBClient.IMAGE_URL + poster }
-    override val genre = genres.firstOrNull()?.name ?: "N/A"
-    override var isMovie = false
-    override val trailerName: String?
-        get() = firstVideo?.name
-
-    private val firstVideo: VideoResultsAO?
-        get() = videos.results.firstOrNull { it.site == "YouTube" && it.type == "Trailer" }
-
-    override val trailer: String?
-        get() = firstVideo?.let { MovieDBClient.YOUTUBE_URL + it.key }
-}
+    , @SerializedName("title") val title: String?
+    , @SerializedName("overview") val summary: String?
+    , @SerializedName("genres") val genres: List<GenreAO>?
+    , @SerializedName("videos") val videos: VideosAO?
+)
 
 data class ShowListAO(
     @SerializedName("id") val id: Int
