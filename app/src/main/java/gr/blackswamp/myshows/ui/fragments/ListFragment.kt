@@ -40,6 +40,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private var watchList: MenuItem? = null
     private var shows: MenuItem? = null
     private lateinit var loadMore: FloatingActionButton
+    private var submitted = false
     //endregion
     private lateinit var movedToLast: MutableLiveData<Boolean>
     private lateinit var viewModel: ListViewModel
@@ -129,7 +130,10 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         watchList = menu.findItem(R.id.watchlist)
         (search!!.actionView as SearchView).let {
             it.setOnQueryTextListener(this)
-            it.setOnSearchClickListener { _ -> it.setQuery(viewModel.searchFilter, false) }
+            it.setOnSearchClickListener { _ ->
+                it.setQuery(viewModel.searchFilter, false)
+                submitted = false
+            }
         }
         shows!!.isVisible = viewModel.canGoToShows.value ?: false
         watchList!!.isVisible = viewModel.canGoToWatchlist.value ?: false
@@ -156,19 +160,22 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
 
+
     override fun onQueryTextSubmit(query: String): Boolean {
         Log.d(TAG, "submitted $query")
-        viewModel.searchItems(query)
+        viewModel.searchItems(query, true)
+        submitted = true
         search?.collapseActionView()
         return true
     }
 
-    override fun onQueryTextChange(newText: String): Boolean = false
-//    override fun onQueryTextChange(query: String): Boolean {
-//        Log.d(TAG, "changing $query")
-//        viewModel.searchItems(query)
-//        return true
-//    }
+    //    override fun onQueryTextChange(newText: String): Boolean = false
+    override fun onQueryTextChange(query: String): Boolean {
+        Log.d(TAG, "changing $query")
+        if (!submitted)
+            viewModel.searchItems(query, false)
+        return true
+    }
 
     class ScrollListener(private val observable: MutableLiveData<Boolean>) : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -207,7 +214,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         fun refresh()
         fun displayWatchList()
         fun displayShowList()
-        fun searchItems(query: String)
+        fun searchItems(query: String, submit: Boolean)
         fun loadNext()
     }
 }

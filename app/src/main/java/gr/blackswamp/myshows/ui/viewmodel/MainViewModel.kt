@@ -81,8 +81,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
         logic.displayWatchList()
     }
 
-    override fun searchItems(query: String) {
-        logic.searchShows(query)
+    override fun searchItems(query: String, submit: Boolean) {
+        logic.searchShows(query, submit)
     }
 
     override fun delete(show: ShowVO) {

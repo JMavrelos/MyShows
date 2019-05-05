@@ -7,7 +7,6 @@ import gr.blackswamp.myshows.data.db.AppDatabase
 import gr.blackswamp.myshows.data.db.ShowDO
 import gr.blackswamp.myshows.logic.model.Show
 import gr.blackswamp.myshows.ui.model.ViewState
-
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import gr.blackswamp.myshows.util.ISchedulers
 import io.reactivex.Observable
@@ -33,9 +32,9 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         loadInitialData()
     }
 
-    override fun searchShows(newFilter: String) {
+    override fun searchShows(newFilter: String, submit: Boolean) {
         //if the newFilter is less than 1 character we return an error because it is not allowed by the api
-        if (inShows) {
+        if (inShows && submit) {
             if (newFilter.isEmpty()) {
                 gotError(R.string.error_invalid_filter, null)
                 return
@@ -43,7 +42,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
 
             vm.showLoading(true)
             doSearchShows("", newFilter, 1)
-        } else {
+        } else if (!inShows) {
             watchFilter = newFilter
             updateViewState(filter = newFilter)
         }
@@ -54,7 +53,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         doSearchShows(showFilter, showFilter, page + 1)
     }
 
-    override fun refreshData() = searchShows(showFilter)
+    override fun refreshData() = searchShows(showFilter, true)
 
     override fun displayShowList() {
         inShows = true
