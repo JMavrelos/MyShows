@@ -36,11 +36,13 @@ class LogicTest {
         logic = MainLogic(vm, service, db, TestSchedulers)
         reset(db) //because init will be called
         reset(vm)
+        logic.showList.clear()
+        logic.watchList.clear()
     }
 
     @Test
     fun getMoviesWithInvalidSearch() {
-        logic.searchShows("")
+        logic.searchShows("", true)
         verify(vm).showError(R.string.error_invalid_filter)
     }
 
@@ -52,7 +54,7 @@ class LogicTest {
 
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, response, 4)))
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
 
         verify(vm).updateState(expected)
         assertEquals(expectedFilter, logic.showFilter)
@@ -70,7 +72,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, listOf(), 1)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         verify(vm).showError(R.string.error_no_results)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -84,7 +86,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
 
         verify(vm).updateState(expected)
         assertEquals(expectedFilter, logic.showFilter)
@@ -103,7 +105,7 @@ class LogicTest {
             .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 10)))
         whenever(service.getShows(expectedFilter, 2))
             .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(10, 20), 10)))
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
 
         verify(vm).updateState(expected)
@@ -125,9 +127,9 @@ class LogicTest {
         whenever(service.getShows(incorrectFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, -3, listOf(), 1)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         verify(vm, never()).showError(anyInt(), any())
-        logic.searchShows(incorrectFilter)
+        logic.searchShows(incorrectFilter, true)
         verify(vm).showError(R.string.error_no_results)
         assertEquals(expectedFilter, logic.showFilter)
         assertEquals(expectedPage, logic.page)
@@ -150,7 +152,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 4))
             .thenReturn(Observable.just(ShowListAO(1, 4, listOf(), 3)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
         logic.loadNextShows()
         logic.loadNextShows()
@@ -180,7 +182,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 3))
             .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(20, 30), 3)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
 
         verify(vm).updateState(expected)
         assertEquals(expectedFilter, logic.showFilter)
@@ -205,7 +207,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 3))
             .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(20, 22), 3)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
 
         verify(vm).updateState(expected)
@@ -234,7 +236,7 @@ class LogicTest {
             whenever(service.getTvDetails(id)).thenReturn(Observable.just(selectedDetails))
         }
 
-        logic.searchShows(filter)
+        logic.searchShows(filter, true)
         logic.showSelected(id, true)
 
         verify(vm).updateState(expected)
@@ -249,7 +251,7 @@ class LogicTest {
         val id = 1111
         whenever(service.getShows(filter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
-        logic.searchShows(filter)
+        logic.searchShows(filter, true)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
 
@@ -265,7 +267,7 @@ class LogicTest {
 
     @Test
     fun whenUserSelectsShowFromWatchListDisplayDetails() {
-        logic.watchList.clear()
+
         logic.watchList.addAll(buildDbShows(10, rnd.nextInt(100)).map { Show(it) })
         val selected = logic.watchList[3]
         val id = selected.id
@@ -281,7 +283,7 @@ class LogicTest {
 
     @Test
     fun whenUserSelectsShowFromWatchListWhichIsNotLoaded() {
-        logic.watchList.clear()
+
         logic.watchList.addAll(buildDbShows(10, rnd.nextInt(100)).map { Show(it) })
         val id = 113
 
@@ -308,7 +310,7 @@ class LogicTest {
         whenever(service.getShows(expectedFilter, 4))
             .thenReturn(Observable.just(ShowListAO(1, 4, all.subList(30, 40), 4)))
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         verify(vm).updateState(ViewState(shows = all.subList(0, 10).map { Show(it) }, hasMore = true, filter = expectedFilter))
         logic.loadNextShows()
         verify(vm).updateState(ViewState(shows = all.subList(0, 20).map { Show(it) }, hasMore = true, filter = expectedFilter))
@@ -340,7 +342,7 @@ class LogicTest {
 
         whenever(service.getShows(expectedFilter, 1))
             .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, true)
         reset(vm)
 
         logic.displayShowList()
@@ -354,21 +356,13 @@ class LogicTest {
     @Test
     fun whenUserSelectsWatchlistAndThereIsNoneSendError() {
         val expectedFilter = "12jhj3k123"
-        val all = buildApiShows(100)
-
-        whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
-        logic.searchShows(expectedFilter)
-        reset(vm)
+        logic.inShows = true
+        logic.showList.addAll(buildApiShows(100).map { Show(it) })
 
         logic.displayWatchList()
 
         verify(vm, never()).updateState(anyNotNull())
         verify(vm).showError(R.string.error_no_watchlist)
-
-        assertEquals(expectedFilter, logic.showFilter)
-        assertEquals(1, logic.page)
-        assertEquals(1, logic.maxPages)
     }
 
     @Test
@@ -419,12 +413,11 @@ class LogicTest {
     @Test
     fun filterThroughWatchlist() {
         val expectedFilter = "ovi"
-        logic.watchList.clear()
         logic.watchList.addAll(buildDbShows(100).map { Show(it) })
         logic.inShows = false
         val expected = ViewState(filter = expectedFilter)
 
-        logic.searchShows(expectedFilter)
+        logic.searchShows(expectedFilter, false)
 
         verify(vm).updateState(expected)
         assertEquals(expectedFilter, logic.watchFilter)
@@ -434,7 +427,6 @@ class LogicTest {
 
     @Test
     fun deleteFromLogicAndStillItemsLeft() {
-        logic.watchList.clear()
         val all = buildDbShows(10)
         logic.watchList.addAll(all.map { Show(it) })
         logic.inShows = false
@@ -442,7 +434,7 @@ class LogicTest {
         val remainingDo = all.filter { it.id != toDelete.id }
         val remaining = logic.watchList.filter { it.id != toDelete.id }
 
-        val expected = ViewState(shows = remaining, hasMore = false)
+        val expected = ViewState(shows = remaining, hasWatchlist = true, hasMore = false)
 
         whenever(db.deleteWatchlistItem(toDelete.id))
             .thenReturn(remainingDo)
@@ -456,8 +448,6 @@ class LogicTest {
 
     @Test
     fun deleteFromWatchlistAndNoItemsLeft() {
-        logic.watchList.clear()
-        logic.showList.clear()
         logic.page = 1
         logic.maxPages = 10
         logic.inShows = false
@@ -466,7 +456,7 @@ class LogicTest {
         logic.show = Show(toDelete)
         logic.watchList.add(Show(toDelete))
 
-        val expected = ViewState(shows = logic.showList, inShows = true, filter = logic.showFilter, hasMore = true, watchListed = false)
+        val expected = ViewState(shows = logic.showList, inShows = true, filter = logic.showFilter, hasMore = true, watchListed = false, hasWatchlist = false)
 
         whenever(db.deleteWatchlistItem(toDelete.id))
             .thenReturn(listOf())
@@ -479,8 +469,6 @@ class LogicTest {
 
     @Test
     fun deleteFromWatchlistWhileInDisplay() {
-        logic.watchList.clear()
-        logic.showList.clear()
         logic.page = 1
         logic.maxPages = 10
         logic.inShows = true
@@ -496,7 +484,7 @@ class LogicTest {
 
         logic.toggleItem()
 
-        verify(vm,times(2)).updateState(expected)
+        verify(vm, times(2)).updateState(expected)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
     }
@@ -506,10 +494,9 @@ class LogicTest {
     fun deleteFromWatchlistAndErrorOccurs() {
         val all = buildDbShows(10)
         logic.inShows = false
-        logic.watchList.clear()
         logic.watchList.addAll(all.map { Show(it) })
         val toDelete = all[rnd.nextInt(10)]
-        val expected = ViewState(shows = logic.watchList, hasMore = false)
+        val expected = ViewState(shows = logic.watchList, hasWatchlist = true, hasMore = false)
 
         whenever(db.deleteWatchlistItem(toDelete.id))
             .thenThrow(SQLiteException::class.java)
@@ -536,13 +523,15 @@ class LogicTest {
         logic.show = Show(logic.showList[3], toAddDetails)
         logic.inShows = true
         val toAdd = ShowDO(logic.show!!)
-        val expected = ViewState(watchListed = true)
+        val expected1 = ViewState(watchListed = true)
+        val expected2 = ViewState(hasWatchlist = true, watchListed = true)
 
         whenever(db.addWatchlistItem(toAdd))
             .thenReturn(listOf(toAdd))
 
         logic.toggleItem()
-        verify(vm, times(2)).updateState(expected)
+        verify(vm).updateState(expected1)
+        verify(vm).updateState(expected2)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
     }
@@ -558,7 +547,7 @@ class LogicTest {
         val toAdd = ShowDO(logic.show!!)
 
         val expected1 = ViewState(watchListed = true)
-        val expected2 = ViewState(watchListed = false)
+        val expected2 = ViewState(hasWatchlist = false, watchListed = false)
 
         whenever(db.addWatchlistItem(toAdd))
             .thenThrow(SQLiteException::class.java)
