@@ -62,7 +62,9 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
         @Suppress("CAST_NEVER_SUCCEEDS")
         if (savedInstanceState == null) {
             trailer = YouTubePlayerSupportFragment.newInstance()
+            (trailer as Fragment).retainInstance = true
             childFragmentManager.beginTransaction().replace(R.id.trailer, trailer as Fragment).commit()
+            trailer.initialize(BuildConfig.YoutubeApiKey, this)
         } else {
             trailer = childFragmentManager.findFragmentById(R.id.trailer) as YouTubePlayerSupportFragment
         }
@@ -111,10 +113,6 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
         genre.text = show.genre
         toolbar.title = show.title
         summary.text = show.summary
-
-        if (show.trailer != null) {
-            trailer.initialize(BuildConfig.YoutubeApiKey, this)
-        }
     }
 
     override fun onInitializationSuccess(provider: YouTubePlayer.Provider?, player: YouTubePlayer?, wasRestored: Boolean) {
