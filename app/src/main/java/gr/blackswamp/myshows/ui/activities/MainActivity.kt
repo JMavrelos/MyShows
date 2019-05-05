@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (supportFragmentManager.findFragmentByTag(DisplayFragment.TAG) != null) {
-            viewModel.exitShows()
+            viewModel.exitDisplay()
         } else {
             finish()
         }

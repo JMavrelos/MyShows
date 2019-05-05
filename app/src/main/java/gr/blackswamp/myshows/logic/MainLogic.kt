@@ -11,10 +11,10 @@ import gr.blackswamp.myshows.util.ISchedulers
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 
-class ListLogic(private val vm: IMainViewModel, private val service: MovieDBService, private val db: AppDatabase, private val schedulers: ISchedulers) : IListLogic {
+class MainLogic(private val vm: IMainViewModel, private val service: MovieDBService, private val db: AppDatabase, private val schedulers: ISchedulers) : IMainLogic {
     companion object {
         @Suppress("unused")
-        const val TAG = "ListLogic"
+        const val TAG = "MainLogic"
     }
 
     private val disposables = CompositeDisposable()
@@ -105,7 +105,6 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         }
     }
 
-
     override fun deleteItem(showId: Int) {
         vm.showLoading(true)
         disposables.add(
@@ -128,6 +127,9 @@ class ListLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         )
     }
 
+    override fun exitDisplay() {
+        vm.showDetails(null)
+    }
 
     private fun doSearchShows(currentFilter: String, newFilter: String, page: Int) {
         disposables.add(

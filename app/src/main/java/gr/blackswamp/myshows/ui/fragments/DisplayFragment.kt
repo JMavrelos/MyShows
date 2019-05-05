@@ -19,7 +19,6 @@ import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
-import com.google.android.youtube.player.YouTubePlayerFragment
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import gr.blackswamp.myshows.App
 import gr.blackswamp.myshows.BuildConfig
@@ -85,7 +84,7 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
 
     private fun setUpListeners() {
         watchLater.setOnClickListener { viewModel.toggleFavourite() }
-        toolbar.setNavigationOnClickListener { viewModel.exitShows() }
+        toolbar.setNavigationOnClickListener { viewModel.exitDisplay() }
     }
 
     private fun setUpObservers() {
@@ -141,7 +140,7 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
 
     interface ShowViewModel {
         fun toggleFavourite()
-        fun exitShows()
+        fun exitDisplay()
 
         val showInWatchlist: LiveData<Boolean>
         val show: LiveData<ShowDetailVO>

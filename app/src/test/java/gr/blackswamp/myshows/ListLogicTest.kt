@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteException
 import gr.blackswamp.myshows.data.api.*
 import gr.blackswamp.myshows.data.db.LocalDatabase
 import gr.blackswamp.myshows.data.db.ShowDO
-import gr.blackswamp.myshows.logic.ListLogic
+import gr.blackswamp.myshows.logic.MainLogic
 import gr.blackswamp.myshows.logic.model.Show
 import gr.blackswamp.myshows.logic.model.isMovie
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
@@ -24,7 +24,7 @@ class ListLogicTest {
     private lateinit var service: MovieDBService
     private lateinit var vm: IMainViewModel
     private lateinit var db: LocalDatabase
-    private lateinit var logic: ListLogic
+    private lateinit var logic: MainLogic
     private val rnd = Random(System.currentTimeMillis())
 
     @Before
@@ -32,7 +32,7 @@ class ListLogicTest {
         service = mock(MovieDBService::class.java)
         db = mock(LocalDatabase::class.java)
         vm = mock(IMainViewModel::class.java)
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
         reset(db) //because init will be called
         reset(vm)
     }
@@ -362,7 +362,7 @@ class ListLogicTest {
         whenever(db.loadWatchlistMatching(""))
             .thenReturn(all)
 
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
         verify(vm).setHasWatchlist(true)
         assertEquals("", logic.watchFilter)
         verify(vm).showLoading(true)
@@ -374,7 +374,7 @@ class ListLogicTest {
         whenever(db.loadWatchlistMatching(""))
             .thenReturn(listOf())
 
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
         verify(vm).setHasWatchlist(false)
         assertEquals("", logic.watchFilter)
         verify(vm).showLoading(true)
@@ -385,7 +385,7 @@ class ListLogicTest {
     fun logicInstantiationWithError() {
         whenever(db.loadWatchlistMatching("")).thenThrow(SQLException::class.java)
 
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
 
         verify(vm).setHasWatchlist(false)
         verify(vm).showError(R.string.error_loading_data)
@@ -430,7 +430,7 @@ class ListLogicTest {
         val remaining = all.filter { it.id != toDelete.id }
 
         whenever(db.loadWatchlistMatching(anyString())).thenReturn(all)
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
 
         logic.displayWatchList()
         logic.searchWatchlist(filter)
@@ -456,7 +456,7 @@ class ListLogicTest {
         val filter = "11123123"
         val toDelete = buildDbShow(1, true)
         whenever(db.loadWatchlistMatching(anyString())).thenReturn(listOf(toDelete))
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
         logic.displayWatchList()
         logic.searchWatchlist(filter)
         verify(vm, never()).showError(anyInt(), any())
@@ -479,7 +479,7 @@ class ListLogicTest {
     fun deleteFromLogicAndStillNoItemsLeftWithoutFilter() {
         val toDelete = buildDbShow(1, true)
         whenever(db.loadWatchlistMatching(anyString())).thenReturn(listOf(toDelete))
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
         logic.displayWatchList()
         verify(vm, never()).showError(anyInt(), any())
         reset(vm)
@@ -503,7 +503,7 @@ class ListLogicTest {
         val toDelete = all[rnd.nextInt(10)]
 
         whenever(db.loadWatchlistMatching(anyString())).thenReturn(all)
-        logic = ListLogic(vm, service, db, TestSchedulers)
+        logic = MainLogic(vm, service, db, TestSchedulers)
 
         logic.displayWatchList()
         verify(vm, never()).showError(anyInt(), any())

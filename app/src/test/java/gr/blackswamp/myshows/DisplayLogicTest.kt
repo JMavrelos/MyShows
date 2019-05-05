@@ -2,7 +2,6 @@ package gr.blackswamp.myshows
 
 import gr.blackswamp.myshows.data.api.MovieDBService
 import gr.blackswamp.myshows.data.db.LocalDatabase
-import gr.blackswamp.myshows.logic.DisplayLogic
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import org.junit.Before
 import org.mockito.Mockito

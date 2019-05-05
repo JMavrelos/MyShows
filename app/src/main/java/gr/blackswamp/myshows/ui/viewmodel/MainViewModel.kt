@@ -9,10 +9,8 @@ import androidx.lifecycle.Transformations
 import gr.blackswamp.myshows.App
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBClient
-import gr.blackswamp.myshows.logic.DisplayLogic
-import gr.blackswamp.myshows.logic.IDisplayLogic
-import gr.blackswamp.myshows.logic.IListLogic
-import gr.blackswamp.myshows.logic.ListLogic
+import gr.blackswamp.myshows.logic.IMainLogic
+import gr.blackswamp.myshows.logic.MainLogic
 import gr.blackswamp.myshows.ui.fragments.DisplayFragment
 import gr.blackswamp.myshows.ui.fragments.ListFragment
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
@@ -46,8 +44,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
     override val canGoToShows: LiveData<Boolean> = Transformations.map(displayingShowList) { !it }  //declares if the goto shows menu item should be displayed
     override val canLoadMore = MutableLiveData<Boolean>() // indicates if there are more items in the list
 
-    private val listLogic: IListLogic = ListLogic(this, MovieDBClient.service, App.database, AppSchedulers) //object that handles the logic behind the list
-    private val displayLogic: IDisplayLogic = DisplayLogic(this, App.database, AppSchedulers) //object that handles the logic behind the display
+    private val logic: IMainLogic = MainLogic(this, MovieDBClient.service, App.database, AppSchedulers) //object that handles the logic behind the list
 
     init {
         canLoadMore.postValue(false)
@@ -80,43 +77,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     //region incoming from list
     override fun select(show: ShowVO) {
-        listLogic.showSelected(show.id, displayingShowList.value ?: true)
+        logic.showSelected(show.id, displayingShowList.value ?: true)
     }
 
     override fun displayShowList() {
-        listLogic.displayShowList()
+        logic.displayShowList()
     }
 
     override fun displayWatchList() {
-        listLogic.displayWatchList()
+        logic.displayWatchList()
     }
 
     override fun searchItems(query: String) {
-        listLogic.searchShows(query)
+        logic.searchShows(query)
     }
 
     override fun delete(show: ShowVO) {
-
+        logic.deleteItem(show.id)
     }
 
     override fun loadNext() {
-        listLogic.loadNextShows()
+        logic.loadNextShows()
     }
 
     override fun refresh() {
-        listLogic.refreshData()
+        logic.refreshData()
     }
     //endregion
 
-    //region incoming from show
+    //region incoming from display
     override fun toggleFavourite() {
 
     }
 
-    override fun exitShows() = displayLogic.exit()
+    override fun exitDisplay() {
+        logic.exitDisplay()
+    }
     //endregion
 
     override fun onCleared() {
-        listLogic.clear()
+        logic.clear()
     }
 }
