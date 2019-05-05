@@ -73,7 +73,6 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(activity!!).get(MainViewModel::class.java)
-//        trailer = (activity!!).fragmentManager.findFragmentById(R.id.trailer) as YouTubePlayerFragment
         setUpObservers()
         setUpListeners()
     }

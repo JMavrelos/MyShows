@@ -69,9 +69,6 @@ class MainActivity : AppCompatActivity() {
         val fragment = supportFragmentManager.findFragmentByTag(DisplayFragment.TAG)
         if (it == null && fragment != null) {
             supportFragmentManager.popBackStack(SHOW_DETAIL, POP_BACK_STACK_INCLUSIVE)
-//                .beginTransaction()
-//                .remove(fragment)
-//                .commit()
         } else if (it != null && tabletMode) {
             supportFragmentManager
                 .beginTransaction()

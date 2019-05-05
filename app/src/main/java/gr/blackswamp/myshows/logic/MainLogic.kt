@@ -14,39 +14,42 @@ import gr.blackswamp.myshows.util.ISchedulers
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 
+/**
+ * This is the logic object that coordinates all actions between the model and the viewmodel
+ */
 class MainLogic(private val vm: IMainViewModel, private val service: MovieDBService, private val db: AppDatabase, private val schedulers: ISchedulers) : IMainLogic {
     companion object {
         @Suppress("unused")
         const val TAG = "MainLogic"
     }
 
-    private val disposables = CompositeDisposable()
-    internal val showList = mutableListOf<Show>()
-    internal val watchList = mutableListOf<Show>()
-    internal var page = 0
-    internal var maxPages = 0
-    internal var showFilter: String = ""
-    internal var watchFilter: String = ""
-    internal var inShows: Boolean = true
-    internal var show: Show? = null
+    private val disposables = CompositeDisposable() //holds all observables that should be disposed on clear
+    internal val showList = mutableListOf<Show>() //the currently loaded list of shows from the service
+    internal val watchList = mutableListOf<Show>() //the list of shows that are added to the watchlist
+    internal var page = 0 //holds up to what page we have currently loaded
+    internal var maxPages = 0 //holds the number of pages in the service api
+    internal var showFilter: String = "" //holds the last saved filter that was used to search in the service
+    internal var watchFilter: String = "" //holds the last saved filter that was used to filter the items of the watchlist
+    internal var inShows: Boolean = true //if true then the user is currently viewing the service search results, otherwise their watch list
+    internal var show: Show? = null //if not null then the user is viewing the list otherwise the details of this show
 
     init {
         loadInitialData()
     }
 
     override fun searchShows(newFilter: String, submit: Boolean) {
-        //if the newFilter is less than 1 character we return an error because it is not allowed by the api
-        if (inShows && submit) {
+        if (inShows && submit) { //if we are searching in shows then we start the search on submit
+
+            //if the newFilter is less than 1 character we return an error because it is not allowed by the api
             if (newFilter.isEmpty()) {
                 gotError(R.string.error_invalid_filter, null)
                 return
             }
-
             vm.showLoading(true)
             doSearchShows("", newFilter, 1)
-        } else if (!inShows) {
+        } else if (!inShows) { //if we are searching in the watchlist we start the search on text change
             watchFilter = newFilter
-            updateViewState(filter = newFilter)
+            updateViewState(filter = newFilter) //sending back the new filter will mean that the view will update its adapter and the adapter will perform the filtering
         }
     }
 
@@ -198,25 +201,25 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
                 .subscribe(
-                    { result ->
-                        watchList.clear()
+                    { result ->//if the operation succeeded
+                        watchList.clear()  // we reload the watchlist
                         watchList.addAll(result.map { Show(it) })
-                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
-                        if (inShows) {
-                            updateViewState(watchListed = inWatchlist)
-                        } else if (watchList.isEmpty()) {
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 } //check if the currently shown item (if any) is in the new watchlist
+                        if (inShows) { //and if we are displaying shows (i.e. the previous screen we came from was the shows) we update the watchlist variables
+                            updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist) //we update the watchlist variables
+                        } else if (watchList.isEmpty()) { //if the reply is empty, (and we are not in the shows) we move to the shows and load the appropriate data
                             inShows = true
                             updateViewState(shows = showList, inShows = inShows, filter = showFilter, hasMore = page < maxPages, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
-                        } else {
+                        } else { //otherwise we update the currently shown list (because we may have deleted by swiping on the list) and the watchlist item
                             updateViewState(shows = watchList, hasMore = false, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         }
                         vm.showLoading(false)
                     }
-                    , { throwable ->
-                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
-                        if (inShows)
+                    , { throwable -> //on error
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 } //check if the currently shown item (if any) is in the watchlist
+                        if (inShows) //we update the watchlist variables
                             updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
-                        else
+                        else //or if we were in the watchlist, the show list too
                             updateViewState(shows = watchList, hasMore = false, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         gotError(R.string.error_delete_watchlist, throwable)
                     }
@@ -231,24 +234,24 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
                 .subscribe(
-                    { result ->
-                        watchList.clear()
+                    { result -> //if the operation succeeded
+                        watchList.clear() //,  we reload the watchlist
                         watchList.addAll(result.map { Show(it) })
-                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
-                        if (inShows) {
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 } //check if the currently shown item is in the new watchlist
+                        if (inShows) {  //and if we are displaying shows (i.e. the previous screen we came from was the shows) we update the watchlist variables
                             updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
-                        } else {
+                        } else { //if we are not (i.e. we came here from the watchlist, removed and readded the item) we update the watchlist variables and the shown list
                             updateViewState(hasWatchlist = watchList.size > 0, shows = watchList, watchListed = inWatchlist)
                         }
                         vm.showLoading(false)
-                    }, { throwable ->
+                    }, { throwable -> //if there was an error
                         val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
-                        if (inShows) {
+                        if (inShows) { //we update the watchlist variables
                             updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
-                        } else {
+                        } else { //or if we were in the watchlist, the show list too
                             updateViewState(hasWatchlist = watchList.size > 0, shows = watchList, watchListed = inWatchlist)
                         }
-                        gotError(R.string.error_add_watchlist, throwable)
+                        gotError(R.string.error_add_watchlist, throwable) //and display the error
                     }
                 )
         )
@@ -264,19 +267,19 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     }
 
     private fun gotShows(currentFilter: String, newFilter: String, loadedPage: Int, pages: Int, results: List<Show>) {
-        if (results.isEmpty() && pages == 1) {
+        if (results.isEmpty() && pages == 1) { //if there are no results and the max number of pages received is 1 that means we could not find anything useful
             vm.showError(R.string.error_no_results)
             vm.showLoading(false)
             return
-        } else if (results.isEmpty() && loadedPage >= pages) {
+        } else if (results.isEmpty() && loadedPage >= pages) { //if there are no results and the currently loaded page is at its maximum then we cannot load anything more
             vm.showError(R.string.error_no_more_shows)
             vm.showLoading(false)
             return
-        } else if (results.isEmpty()) {
+        } else if (results.isEmpty()) { //if there are no results (but because we are in the else clause) and we are not at the maximum, load the next page
             page = loadedPage
             maxPages = pages
             doSearchShows(currentFilter, newFilter, page + 1)
-        } else if (newFilter != currentFilter) { //this means we made a new searchFilter
+        } else if (newFilter != currentFilter) { //this means we made a new filter, so we empty the current list and add the new one's contents in it
             page = loadedPage
             maxPages = pages
             showFilter = newFilter
@@ -288,7 +291,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 , filter = showFilter
             )
             vm.showLoading(false)
-        } else { //this means we are continuing with our previous searchFilter
+        } else { //this means we are continuing with our previous search so we append the results
             page = loadedPage
             maxPages = pages
             showList.addAll(results)
