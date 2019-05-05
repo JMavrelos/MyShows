@@ -3,7 +3,7 @@ package gr.blackswamp.myshows.data.api
 import com.google.gson.annotations.SerializedName
 
 
-data class GenreAO(@SerializedName("id") val id: Int, @SerializedName("listTitle") val name: String)
+data class GenreAO(@SerializedName("id") val id: Int, @SerializedName("name") val name: String)
 
 data class ShowAO(
     @SerializedName("id") val id: Int
