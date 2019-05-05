@@ -1,29 +1,46 @@
 package gr.blackswamp.myshows.data.db
 
 import androidx.room.*
-import gr.blackswamp.myshows.logic.model.Show
 
 @Dao
 abstract class  ShowDao {
 
-    @Query("SELECT * FROM shows ")
-    abstract fun loadShowList(): List<ShowDO>
+    @Query("SELECT * FROM movies ")
+    abstract fun loadMovieList(): List<MovieDO>
+
+    @Query("SELECT * FROM tv ")
+    abstract fun loadTvList(): List<TvShowDO>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun newShow(show: ShowDO)
+    abstract fun newMovie(show: MovieDO)
 
-    @Query("DELETE FROM shows WHERE id = :id")
-    abstract fun deleteShowById(id: Int): Int
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract fun newTv(show: TvShowDO)
+
+    @Query("DELETE FROM movies WHERE id = :id")
+    abstract fun deleteMovieById(id: Int): Int
+
+    @Query("DELETE FROM tv WHERE id = :id")
+    abstract fun deleteTvShowById(id: Int): Int
 
     @Transaction
-    open fun deleteAndGetResult(id:Int) : List<ShowDO> {
-        deleteShowById(id)
-        return loadShowList()
+    open fun deleteAndGetResult(id:Int,isMovie : Boolean) : List<IShowDO> {
+        if (isMovie)
+            deleteMovieById(id)
+        else
+            deleteTvShowById(id)
+        return listOf(
+            *loadTvList().toTypedArray(),*loadMovieList().toTypedArray()).sortedBy { it.title }
     }
 
     @Transaction
-    open fun addAndGetResult(show:ShowDO) : List<ShowDO> {
-        newShow(show)
-        return loadShowList()
+    open fun addAndGetResult(show:IShowDO) : List<IShowDO> {
+        if (show.isMovie)
+            newMovie(show as MovieDO)
+        else
+            newTv(show as TvShowDO)
+
+        return listOf(
+            *loadTvList().toTypedArray(),*loadMovieList().toTypedArray()).sortedBy { it.title }
     }
 }

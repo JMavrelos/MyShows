@@ -4,8 +4,10 @@ package gr.blackswamp.myshows
 import android.database.SQLException
 import android.database.sqlite.SQLiteException
 import gr.blackswamp.myshows.data.api.*
+import gr.blackswamp.myshows.data.db.IShowDO
 import gr.blackswamp.myshows.data.db.LocalDatabase
-import gr.blackswamp.myshows.data.db.ShowDO
+import gr.blackswamp.myshows.data.db.MovieDO
+import gr.blackswamp.myshows.data.db.TvShowDO
 import gr.blackswamp.myshows.logic.MainLogic
 import gr.blackswamp.myshows.logic.model.Show
 import gr.blackswamp.myshows.ui.model.ViewState
@@ -355,7 +357,6 @@ class LogicTest {
 
     @Test
     fun whenUserSelectsWatchlistAndThereIsNoneSendError() {
-        val expectedFilter = "12jhj3k123"
         logic.inShows = true
         logic.showList.addAll(buildApiShows(100).map { Show(it) })
 
@@ -436,10 +437,10 @@ class LogicTest {
 
         val expected = ViewState(shows = remaining, hasWatchlist = true, hasMore = false)
 
-        whenever(db.deleteWatchlistItem(toDelete.id))
+        whenever(db.deleteWatchlistItem(toDelete.id, toDelete.isMovie))
             .thenReturn(remainingDo)
 
-        logic.deleteItem(toDelete.id)
+        logic.deleteItem(toDelete)
         verify(vm).updateState(expected)
 
         verify(vm).showLoading(true)
@@ -458,10 +459,10 @@ class LogicTest {
 
         val expected = ViewState(shows = logic.showList, inShows = true, filter = logic.showFilter, hasMore = true, watchListed = false, hasWatchlist = false)
 
-        whenever(db.deleteWatchlistItem(toDelete.id))
+        whenever(db.deleteWatchlistItem(toDelete.id, toDelete.isMovie))
             .thenReturn(listOf())
 
-        logic.deleteItem(toDelete.id)
+        logic.deleteItem(Show(toDelete))
         verify(vm).updateState(expected)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -479,7 +480,7 @@ class LogicTest {
 
         val expected = ViewState(watchListed = false)
 
-        whenever(db.deleteWatchlistItem(toDelete.id))
+        whenever(db.deleteWatchlistItem(toDelete.id, true))
             .thenReturn(listOf())
 
         logic.toggleItem()
@@ -498,10 +499,10 @@ class LogicTest {
         val toDelete = all[rnd.nextInt(10)]
         val expected = ViewState(shows = logic.watchList, hasWatchlist = true, hasMore = false)
 
-        whenever(db.deleteWatchlistItem(toDelete.id))
+        whenever(db.deleteWatchlistItem(toDelete.id, toDelete.isMovie))
             .thenThrow(SQLiteException::class.java)
 
-        logic.deleteItem(toDelete.id)
+        logic.deleteItem(Show(toDelete))
 
         verify(vm).updateState(expected)
         verify(vm).showError(R.string.error_delete_watchlist)
@@ -522,7 +523,12 @@ class LogicTest {
         val toAddDetails = ShowDetailAO(logic.showList[3].id, randomString(100), listOf(), null)
         logic.show = Show(logic.showList[3], toAddDetails)
         logic.inShows = true
-        val toAdd = ShowDO(logic.show!!)
+        val toAdd =
+            if (logic.show!!.isMovie)
+                MovieDO(logic.show!!)
+            else
+                TvShowDO(logic.show!!)
+
         val expected1 = ViewState(watchListed = true)
         val expected2 = ViewState(hasWatchlist = true, watchListed = true)
 
@@ -544,7 +550,11 @@ class LogicTest {
         logic.inShows = true
         logic.watchFilter = ""
 
-        val toAdd = ShowDO(logic.show!!)
+        val toAdd =
+            if (logic.show!!.isMovie)
+                MovieDO(logic.show!!)
+            else
+                TvShowDO(logic.show!!)
 
         val expected1 = ViewState(watchListed = true)
         val expected2 = ViewState(hasWatchlist = false, watchListed = false)
@@ -579,11 +589,14 @@ class LogicTest {
     private fun buildApiShow(id: Int, type: String) =
         ShowAO(id, null, Date(rnd.nextLong()).toString(), Date(rnd.nextLong()).toString(), type, "$type $id", "$type $id", rnd.nextDouble(10.0))
 
-    private fun buildDbShows(count: Int, startId: Int = 0): List<ShowDO> =
+    private fun buildDbShows(count: Int, startId: Int = 0): List<IShowDO> =
         (startId until startId + count).map { buildDbShow(it, rnd.nextInt(2) == 1) }
 
     private fun buildDbShow(id: Int, isMovie: Boolean) =
-        ShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", isMovie, rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null)
+        if (isMovie)
+            MovieDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null)
+        else
+            TvShowDO(id, if (isMovie) "Movie $id" else "Tv $id", null, randomString(10), "Action/Comedy", rnd.nextDouble(10.0).toString(), Date(rnd.nextLong()).toString(), null)
 
     private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 

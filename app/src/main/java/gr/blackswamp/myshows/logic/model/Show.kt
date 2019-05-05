@@ -3,7 +3,7 @@ package gr.blackswamp.myshows.logic.model
 import gr.blackswamp.myshows.data.api.MovieDBClient
 import gr.blackswamp.myshows.data.api.ShowAO
 import gr.blackswamp.myshows.data.api.ShowDetailAO
-import gr.blackswamp.myshows.data.db.ShowDO
+import gr.blackswamp.myshows.data.db.IShowDO
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
 import gr.blackswamp.myshows.ui.model.ShowVO
 
@@ -23,7 +23,7 @@ data class Show(override val id: Int
     override val image: String?
         get() = poster?.let { MovieDBClient.IMAGE_URL + it }
 
-    constructor(show: ShowDO) : this(show.id, show.poster, show.title, show.rating, show.release, show.isMovie, show.summary, show.genre, show.trailer)
+    constructor(show:IShowDO) : this(show.id, show.poster, show.title, show.rating, show.release, show.isMovie, show.summary, show.genre, show.trailer)
 
     constructor(show: ShowAO) :
             this(show.id

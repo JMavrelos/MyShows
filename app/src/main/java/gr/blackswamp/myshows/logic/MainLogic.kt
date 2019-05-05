@@ -4,8 +4,10 @@ import androidx.annotation.StringRes
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBService
 import gr.blackswamp.myshows.data.db.AppDatabase
-import gr.blackswamp.myshows.data.db.ShowDO
+import gr.blackswamp.myshows.data.db.MovieDO
+import gr.blackswamp.myshows.data.db.TvShowDO
 import gr.blackswamp.myshows.logic.model.Show
+import gr.blackswamp.myshows.ui.model.ShowVO
 import gr.blackswamp.myshows.ui.model.ViewState
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import gr.blackswamp.myshows.util.ISchedulers
@@ -96,7 +98,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         if (selected != null) {
             if (watchList.count { it.id == selected.id } == 1) {
                 updateViewState(watchListed = false)
-                doDeleteItem(selected.id)
+                doDeleteItem(selected.id, selected.isMovie)
             } else {
                 updateViewState(watchListed = true)
                 doAddItem(selected)
@@ -106,9 +108,9 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         }
     }
 
-    override fun deleteItem(showId: Int) {
+    override fun deleteItem(show: ShowVO) {
         vm.showLoading(true)
-        doDeleteItem(showId)
+        doDeleteItem(show.id, show.isMovie)
     }
 
     override fun exitDisplay() {
@@ -189,10 +191,10 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             )
     }
 
-    private fun doDeleteItem(id: Int) {
+    private fun doDeleteItem(id: Int, isMovie: Boolean) {
         disposables.add(
             Observable.fromCallable {
-                db.deleteWatchlistItem(id)
+                db.deleteWatchlistItem(id, isMovie)
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
                 .subscribe(
@@ -225,7 +227,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     private fun doAddItem(selected: Show) {
         disposables.add(
             Observable.fromCallable {
-                db.addWatchlistItem(ShowDO(selected))
+                db.addWatchlistItem(if (selected.isMovie) MovieDO(selected) else TvShowDO(selected))
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
                 .subscribe(

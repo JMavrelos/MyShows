@@ -1,5 +1,7 @@
 package gr.blackswamp.myshows.logic
 
+import gr.blackswamp.myshows.ui.model.ShowVO
+
 interface IMainLogic {
     fun searchShows(newFilter: String, submit:Boolean)
     fun clear()
@@ -8,7 +10,7 @@ interface IMainLogic {
     fun displayShowList()
     fun displayWatchList()
     fun loadNextShows()
-    fun deleteItem(showId: Int)
+    fun deleteItem(show: ShowVO)
     fun toggleItem()
     fun exitDisplay()
 }

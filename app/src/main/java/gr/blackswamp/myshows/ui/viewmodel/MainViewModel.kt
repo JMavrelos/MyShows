@@ -86,7 +86,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
     }
 
     override fun delete(show: ShowVO) {
-        logic.deleteItem(show.id)
+        logic.deleteItem(show)
     }
 
     override fun loadNext() {
