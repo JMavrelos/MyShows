@@ -14,20 +14,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
+    
     <androidx.core.widget.ContentLoadingProgressBar
         android:id="@+id/loading"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:paddingTop="?attr/actionBarSize"
-        android:layout_marginBottom="-7dp"
-        android:layout_marginTop="-7dp"
         android:indeterminate="true"
-        app:layout_constraintTop_toTopOf="parent"
+        android:paddingTop="?attr/actionBarSize"
+        android:translationY="-6dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:id="@+id/input_block"
