@@ -12,10 +12,10 @@
         android:id="@+id/shows"
         android:icon="@drawable/ic_movie"
         android:title="@string/goto_shows"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/watchlist"
         android:icon="@drawable/ic_watch_later"
         android:title="@string/goto_watchlist"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 </menu>

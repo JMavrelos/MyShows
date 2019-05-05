@@ -31,28 +31,23 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="@dimen/margin"
-            app:layout_constraintBottom_toTopOf="@+id/half_screen"
+            app:layout_constraintDimensionRatio="16:9"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/half_screen"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent=".5" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/poster"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginTop="@dimen/margin"
             android:padding="@dimen/padding"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/genre_caption"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/half_screen"
+            app:layout_constraintTop_toBottomOf="@+id/trailer"
             tools:src="@drawable/ic_image" />
 
         <TextView
@@ -60,11 +55,12 @@
             style="@style/TextAppearance.MaterialComponents.Headline6"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin"
             android:text="@string/genre"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@+id/poster"
-            app:layout_constraintTop_toBottomOf="@+id/half_screen" />
+            app:layout_constraintTop_toBottomOf="@+id/trailer" />
 
         <TextView
             android:id="@+id/genre"

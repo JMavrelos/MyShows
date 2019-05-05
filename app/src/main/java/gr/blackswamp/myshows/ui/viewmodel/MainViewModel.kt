@@ -100,7 +100,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     //region incoming from display
     override fun toggleFavourite() {
-
+        logic.toggleItem()
     }
 
     override fun exitDisplay() {

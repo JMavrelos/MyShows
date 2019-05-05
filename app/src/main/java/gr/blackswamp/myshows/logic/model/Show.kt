@@ -13,7 +13,6 @@ data class Show(override val id: Int
                 , override val rating: String
                 , override val release: String
                 , override val isMovie: Boolean
-
                 , override val summary: String
                 , override val genre: String
                 , override val trailer: String?)
@@ -24,7 +23,7 @@ data class Show(override val id: Int
     override val image: String?
         get() = poster?.let { MovieDBClient.IMAGE_URL + it }
 
-    constructor(show: ShowDO) : this(show.id, show.poster, show.title, show.rating, show.release, show.isMovie, show.summary, show.summary, show.trailer)
+    constructor(show: ShowDO) : this(show.id, show.poster, show.title, show.rating, show.release, show.isMovie, show.summary, show.genre, show.trailer)
 
     constructor(show: ShowAO) :
             this(show.id

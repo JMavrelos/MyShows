@@ -112,7 +112,6 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
         toolbar.title = show.title
         summary.text = show.summary
 
-
         if (show.trailer != null) {
             trailer.initialize(BuildConfig.YoutubeApiKey, this)
         }
@@ -125,7 +124,6 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
                 player?.cueVideo(show.trailer)
             }
         }
-
     }
 
     override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {

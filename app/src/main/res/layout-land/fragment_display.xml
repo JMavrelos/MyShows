@@ -31,26 +31,20 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="@dimen/margin"
+            app:layout_constraintDimensionRatio="16:9"
             android:background="@color/backgroundColor"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/poster"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/half_screen"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent=".5" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/poster"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:padding="@dimen/padding"
-            app:layout_constraintBottom_toTopOf="@+id/half_screen"
+            app:layout_constraintBottom_toBottomOf="@+id/trailer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@+id/trailer"
@@ -64,9 +58,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/genre"
-            app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="@+id/poster"
-            app:layout_constraintTop_toBottomOf="@+id/poster" />
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/trailer" />
 
         <TextView
             android:id="@+id/genre"
@@ -75,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin"
             app:layout_constraintEnd_toEndOf="@+id/genre_caption"
-            app:layout_constraintStart_toStartOf="@+id/poster"
+            app:layout_constraintStart_toStartOf="@+id/genre_caption"
             app:layout_constraintTop_toBottomOf="@+id/genre_caption"
             tools:text="Action/Comedy" />
 
@@ -86,8 +81,8 @@
             android:layout_height="wrap_content"
             android:width="0dp"
             android:text="@string/summary"
-            app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="@+id/poster"
+            app:layout_constraintEnd_toEndOf="@+id/genre_caption"
+            app:layout_constraintStart_toStartOf="@+id/genre_caption"
             app:layout_constraintTop_toBottomOf="@+id/genre" />
 
         <TextView
@@ -96,10 +91,10 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scrollbars="vertical"
+            android:layout_marginStart="@dimen/margin"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/poster"
-            app:layout_constraintStart_toStartOf="@+id/poster"
-
+            app:layout_constraintEnd_toEndOf="@+id/genre_caption"
+            app:layout_constraintStart_toStartOf="@+id/genre_caption"
             app:layout_constraintTop_toBottomOf="@id/summary_caption"
             tools:text="Est possimus consectetur officiis rerum deleniti ut expedita quis. Itaque aut et veniam sit saepe fugiat magnam. Quos fugiat sint dolor modi error voluptatem.
 

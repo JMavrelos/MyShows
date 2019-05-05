@@ -11,6 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -33,7 +34,6 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     //region bindings
     private lateinit var list: RecyclerView
     private lateinit var adapter: ShowAdapter
-    private lateinit var callback: ShowAdapterCallback
     private lateinit var refresh: SwipeRefreshLayout
     private lateinit var initialMessage: TextView
     private var search: MenuItem? = null
@@ -71,8 +71,8 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         adapter = ShowAdapter(this) { show, select ->
             if (select) viewModel.select(show) else viewModel.delete(show)
         }
-        callback = ShowAdapterCallback(adapter)
         list.adapter = adapter
+        ItemTouchHelper(ShowAdapterCallback(adapter)).attachToRecyclerView(list)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -101,7 +101,6 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         })
         viewModel.canGoToShows.observe(this, Observer { shows?.isVisible = it })
         viewModel.canGoToWatchlist.observe(this, Observer { watchList?.isVisible = it })
-//        viewModel.searchFilter.observe(this, Observer { (search?.actionView as? SearchView)?.setQuery(it, false) })
         viewModel.showInitialMessage.observe(this, Observer { initialMessage.visibility = if (it) View.VISIBLE else View.GONE })
         MediatorPairLiveData<Boolean, Boolean, Boolean>(viewModel.canLoadMore, movedToLast) { c, m ->
             c ?: false && m ?: false
@@ -165,6 +164,11 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onQueryTextChange(newText: String): Boolean = false
+//    override fun onQueryTextChange(query: String): Boolean {
+//        Log.d(TAG, "changing $query")
+//        viewModel.searchItems(query)
+//        return true
+//    }
 
     class ScrollListener(private val observable: MutableLiveData<Boolean>) : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {

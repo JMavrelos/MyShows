@@ -37,7 +37,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         //if the newFilter is less than 1 character we return an error because it is not allowed by the api
         if (inShows) {
             if (newFilter.isEmpty()) {
-                vm.showError(R.string.error_invalid_filter)
+                gotError(R.string.error_invalid_filter, null)
                 return
             }
 
@@ -74,7 +74,7 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                 shows = watchList.map { it.copy() }
                 , inShows = inShows
                 , hasMore = false
-                , filter = showFilter)
+                , filter = watchFilter)
         }
     }
 
@@ -205,18 +205,18 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                             updateViewState(watchListed = inWatchlist)
                         } else if (watchList.isEmpty()) {
                             inShows = true
-                            updateViewState(shows= showList,inShows = inShows,filter = showFilter , hasMore = page < maxPages, watchListed = inWatchlist)
-                        }else {
-                            updateViewState(shows = watchList, hasMore = false, watchListed = inWatchlist)
+                            updateViewState(shows = showList, inShows = inShows, filter = showFilter, hasMore = page < maxPages, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
+                        } else {
+                            updateViewState(shows = watchList, hasMore = false, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         }
                         vm.showLoading(false)
                     }
                     , { throwable ->
                         val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
                         if (inShows)
-                            updateViewState(watchListed = inWatchlist)
+                            updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         else
-                            updateViewState(shows = watchList, hasMore = false, watchListed = inWatchlist)
+                            updateViewState(shows = watchList, hasMore = false, hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         gotError(R.string.error_delete_watchlist, throwable)
                     }
                 )
@@ -235,17 +235,17 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
                         watchList.addAll(result.map { Show(it) })
                         val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
                         if (inShows) {
-                            updateViewState(watchListed = inWatchlist)
+                            updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         } else {
-                            updateViewState(shows = watchList, watchListed = inWatchlist)
+                            updateViewState(hasWatchlist = watchList.size > 0, shows = watchList, watchListed = inWatchlist)
                         }
                         vm.showLoading(false)
                     }, { throwable ->
                         val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
                         if (inShows) {
-                            updateViewState(watchListed = inWatchlist)
+                            updateViewState(hasWatchlist = watchList.size > 0, watchListed = inWatchlist)
                         } else {
-                            updateViewState(shows = watchList, watchListed = inWatchlist)
+                            updateViewState(hasWatchlist = watchList.size > 0, shows = watchList, watchListed = inWatchlist)
                         }
                         gotError(R.string.error_add_watchlist, throwable)
                     }
