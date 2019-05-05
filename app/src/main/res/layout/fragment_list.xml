@@ -20,20 +20,37 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresh"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/shows"
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/list_item_show" />
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/shows"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/list_item_show" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+            android:id="@+id/initial_message"
+            style="@style/TextAppearance.MaterialComponents.Headline3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/initial_message"
+            android:visibility="gone"
+            />
+    </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/load_more"
@@ -41,7 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:tint="@color/secondaryTextColor"
-        android:src="@drawable/ic_expand_more" />
+        android:src="@drawable/ic_expand_more"
+        android:tint="@color/secondaryTextColor" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

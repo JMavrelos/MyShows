@@ -30,12 +30,6 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
     companion object {
         const val TAG = "DisplayFragment"
         fun newInstance(): DisplayFragment = DisplayFragment()
-//        const val NO_VIDEO_HTML = "<!doctype html>\n" +
-//                "<html lang=\"en\">\n" +
-//                "<body>\n" +
-//                "<header style=\"position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);\"> No trailer exists for this Show</header>\n" +
-//                "</body>\n" +
-//                "</html>\n"
     }
 
     //region bindings
@@ -57,7 +51,7 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(R.layout.fragment_display, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d(TAG,"view created")
+        Log.d(TAG, "view created")
         toolbar = view.findViewById(R.id.toolbar)
         poster = view.findViewById(R.id.poster)
         genre = view.findViewById(R.id.genre)
@@ -65,13 +59,13 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
         watchLater = view.findViewById(R.id.watch_later)
         summary.movementMethod = ScrollingMovementMethod()
 
+        @Suppress("CAST_NEVER_SUCCEEDS")
         if (savedInstanceState == null) {
             trailer = YouTubePlayerSupportFragment.newInstance()
             childFragmentManager.beginTransaction().replace(R.id.trailer, trailer as Fragment).commit()
         } else {
             trailer = childFragmentManager.findFragmentById(R.id.trailer) as YouTubePlayerSupportFragment
         }
-
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -89,7 +83,7 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
 
     private fun setUpObservers() {
         viewModel.show.observe(this, Observer { showDetail(it) })
-        viewModel.showInWatchlist.observe(this, Observer { updateAction(it) })
+        viewModel.showWatchListed.observe(this, Observer { updateAction(it) })
     }
 
     private fun updateAction(watchLater: Boolean?) {
@@ -142,7 +136,7 @@ class DisplayFragment : Fragment(), YouTubePlayer.OnInitializedListener {
         fun toggleFavourite()
         fun exitDisplay()
 
-        val showInWatchlist: LiveData<Boolean>
+        val showWatchListed: LiveData<Boolean>
         val show: LiveData<ShowDetailVO>
 
     }

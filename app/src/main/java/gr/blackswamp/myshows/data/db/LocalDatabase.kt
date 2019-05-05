@@ -7,7 +7,9 @@ import androidx.room.RoomDatabase
 abstract class LocalDatabase : RoomDatabase(), AppDatabase {
     protected abstract val showDao: ShowDao
 
-    override fun loadWatchlistMatching(filter: String): List<ShowDO> = showDao.loadShowList(filter)
+    override fun loadWatchlist() = showDao.loadShowList()
 
-    override fun deleteWatchlistItem(id: Int): Int = showDao.deleteShowById(id)
+    override fun deleteWatchlistItem(id: Int)= showDao.deleteAndGetResult(id)
+
+    override fun addWatchlistItem(show: ShowDO) = showDao.addAndGetResult(show)
 }

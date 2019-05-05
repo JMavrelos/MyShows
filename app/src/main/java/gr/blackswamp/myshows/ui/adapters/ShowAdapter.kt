@@ -1,5 +1,6 @@
 package gr.blackswamp.myshows.ui.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,8 +14,22 @@ import gr.blackswamp.myshows.ui.model.ShowVO
 import java.lang.Math.min
 
 class ShowAdapter(private val fragment: Fragment, private val listener: (ShowVO, Boolean) -> Unit) : RecyclerView.Adapter<ShowAdapter.ShowViewHolder>() {
-    private val shows = mutableListOf<ShowVO>()
+    companion object {
+        const val TAG = "ShowAdapter"
+    }
+    private val _shows = mutableListOf<ShowVO>()
+    val shows: List<ShowVO>
+        get() = _shows.filter { it.title.toLowerCase().contains(filter.toLowerCase()) }
     var allowSwipe: Boolean = false
+    private var filter: String = ""
+    fun setFilter(newFilter: String?) {
+        if (newFilter ?: "" != filter) {
+            Log.d(TAG,"filter changed")
+            notifyChange {
+                filter = newFilter ?: ""
+            }
+        }
+    }
 
     override fun getItemCount(): Int = shows.size
 
@@ -27,10 +42,18 @@ class ShowAdapter(private val fragment: Fragment, private val listener: (ShowVO,
 
     override fun onBindViewHolder(holder: ShowViewHolder, position: Int) = holder.update(position, shows[position])
 
-    fun setShows(shows: List<ShowVO>) {
-        val oldCount = this.shows.size
-        this.shows.clear()
-        this.shows.addAll(shows)
+    fun setShows(shows: List<ShowVO>, newFilter: String?) {
+        Log.d(TAG,"source changed")
+        notifyChange {
+            _shows.clear()
+            _shows.addAll(shows)
+            filter = newFilter ?: ""
+        }
+    }
+
+    private fun notifyChange(action: () -> Unit) {
+        val oldCount = itemCount
+        action.invoke()
         if (oldCount > itemCount) {
             notifyItemRangeRemoved(itemCount, oldCount - itemCount)
         } else if (oldCount < itemCount) {
@@ -38,6 +61,7 @@ class ShowAdapter(private val fragment: Fragment, private val listener: (ShowVO,
         }
         notifyItemRangeChanged(0, min(oldCount, itemCount))
     }
+
 
     private fun itemClicked(position: Int) =
         listener.invoke(shows[position], true)

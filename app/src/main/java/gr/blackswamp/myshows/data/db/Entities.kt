@@ -3,6 +3,7 @@ package gr.blackswamp.myshows.data.db
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import gr.blackswamp.myshows.logic.model.Show
 
 
 @Entity(tableName = "shows")
@@ -16,5 +17,7 @@ data class ShowDO(
     , @ColumnInfo(name = "rating") val rating: String
     , @ColumnInfo(name = "release") val release: String
     , @ColumnInfo(name = "trailer") val trailer: String?
-    , @ColumnInfo(name = "trailerName") val trailerName: String?
-) 
+) {
+    constructor(show: Show) : this(show.id, show.title, show.poster, show.summary, show.genre, show.isMovie, show.rating, show.release, show.trailer)
+
+}

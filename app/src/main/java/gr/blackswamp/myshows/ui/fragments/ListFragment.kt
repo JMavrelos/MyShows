@@ -3,6 +3,7 @@ package gr.blackswamp.myshows.ui.fragments
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -34,6 +35,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private lateinit var adapter: ShowAdapter
     private lateinit var callback: ShowAdapterCallback
     private lateinit var refresh: SwipeRefreshLayout
+    private lateinit var initialMessage: TextView
     private var search: MenuItem? = null
     private var watchList: MenuItem? = null
     private var shows: MenuItem? = null
@@ -61,6 +63,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         refresh = view.findViewById(R.id.refresh)
         loadMore = view.findViewById(R.id.load_more)
         movedToLast = MutableLiveData()
+        initialMessage = view.findViewById(R.id.initial_message)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -84,7 +87,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private fun setUpObservers() {
         Log.d(TAG, "set up observers")
         viewModel.showList.observe(this, Observer {
-            adapter.setShows(it)
+            adapter.setShows(it.first, it.second)
             refresh.isRefreshing = false
         })
         viewModel.displayingShowList.observe(this, Observer {
@@ -93,10 +96,13 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         })
         viewModel.loading.observe(this, Observer { if (!it) refresh.isRefreshing = false })
         viewModel.listTitle.observe(this, Observer { (activity as AppCompatActivity).title = it })
+        viewModel.adapterFilter.observe(this, Observer {
+            adapter.setFilter(it)
+        })
         viewModel.canGoToShows.observe(this, Observer { shows?.isVisible = it })
         viewModel.canGoToWatchlist.observe(this, Observer { watchList?.isVisible = it })
-        viewModel.searchFilter.observe(this, Observer { (search?.actionView as? SearchView)?.setQuery(it, false) })
-
+//        viewModel.searchFilter.observe(this, Observer { (search?.actionView as? SearchView)?.setQuery(it, false) })
+        viewModel.showInitialMessage.observe(this, Observer { initialMessage.visibility = if (it) View.VISIBLE else View.GONE })
         MediatorPairLiveData<Boolean, Boolean, Boolean>(viewModel.canLoadMore, movedToLast) { c, m ->
             c ?: false && m ?: false
         }.observe(
@@ -124,20 +130,14 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         watchList = menu.findItem(R.id.watchlist)
         (search!!.actionView as SearchView).let {
             it.setOnQueryTextListener(this)
-            it.setOnSearchClickListener { _ ->
-                viewModel.searchFilter.value?.let { search -> it.setQuery(search, false) }
-            }
-        }
-
-        viewModel.searchFilter.value?.let {
-            (search?.actionView as? SearchView)?.setQuery(it, false)
+            it.setOnSearchClickListener { _ -> it.setQuery(viewModel.searchFilter, false) }
         }
         shows!!.isVisible = viewModel.canGoToShows.value ?: false
         watchList!!.isVisible = viewModel.canGoToWatchlist.value ?: false
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        Log.d(TAG, "menu item selected ${item?.itemId}")
+        Log.d(TAG, "menu item selectionChanged ${item?.itemId}")
         return when (item?.itemId) {
             R.id.shows -> {
                 viewModel.displayShowList()
@@ -187,14 +187,16 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
 
 
     interface ListViewModel {
-        val showList: LiveData<List<ShowVO>>
+        val showList: LiveData<Pair<List<ShowVO>, String?>>
         val canGoToShows: LiveData<Boolean>
         val canGoToWatchlist: LiveData<Boolean>
         val canLoadMore: LiveData<Boolean>
         val displayingShowList: LiveData<Boolean>
         val listTitle: LiveData<String>
-        val searchFilter: LiveData<String>
+        val searchFilter: String
+        val adapterFilter: LiveData<String>
         val loading: LiveData<Boolean>
+        val showInitialMessage: LiveData<Boolean>
 
         fun select(show: ShowVO)
         fun delete(show: ShowVO)

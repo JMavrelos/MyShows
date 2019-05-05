@@ -8,7 +8,7 @@ interface IMainLogic {
     fun displayShowList()
     fun displayWatchList()
     fun loadNextShows()
-    fun searchWatchlist(newFilter: String)
     fun deleteItem(showId: Int)
+    fun toggleItem()
     fun exitDisplay()
 }

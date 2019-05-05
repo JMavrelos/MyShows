@@ -4,7 +4,9 @@ import androidx.annotation.StringRes
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBService
 import gr.blackswamp.myshows.data.db.AppDatabase
+import gr.blackswamp.myshows.data.db.ShowDO
 import gr.blackswamp.myshows.logic.model.Show
+import gr.blackswamp.myshows.ui.model.ViewState
 
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
 import gr.blackswamp.myshows.util.ISchedulers
@@ -18,53 +20,33 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     }
 
     private val disposables = CompositeDisposable()
-    private val showList = mutableListOf<Show>()
-    private val watchList = mutableListOf<Show>()
-
-    var page = 0
-        private set
-    var maxPages = 0
-        private set
-    var showFilter: String = ""
-        private set
-    var watchFilter: String = ""
-        private set
+    internal val showList = mutableListOf<Show>()
+    internal val watchList = mutableListOf<Show>()
+    internal var page = 0
+    internal var maxPages = 0
+    internal var showFilter: String = ""
+    internal var watchFilter: String = ""
+    internal var inShows: Boolean = true
+    internal var show: Show? = null
 
     init {
         loadInitialData()
     }
 
-    private fun loadInitialData() {
-        vm.showLoading(true)
-        watchFilter = ""
-        disposables.add(
-            Observable.fromCallable {
-                db.loadWatchlistMatching("")
-            }.subscribeOn(schedulers.subscribeScheduler)
-                .observeOn(schedulers.observeScheduler)
-                .map { list -> list.map { Show(it) } }
-                .subscribe(
-                    {
-                        watchList.addAll(it)
-                        vm.setHasWatchlist(!watchList.isEmpty())
-                        vm.showLoading(false)
-                    }
-                    , {
-                        vm.setHasWatchlist(false)
-                        gotError(R.string.error_loading_data, it)
-                    }
-                )
-        )
-    }
-
     override fun searchShows(newFilter: String) {
         //if the newFilter is less than 1 character we return an error because it is not allowed by the api
-        if (newFilter.isEmpty()) {
-            vm.showError(R.string.error_invalid_filter)
-            return
+        if (inShows) {
+            if (newFilter.isEmpty()) {
+                vm.showError(R.string.error_invalid_filter)
+                return
+            }
+
+            vm.showLoading(true)
+            doSearchShows("", newFilter, 1)
+        } else {
+            watchFilter = newFilter
+            updateViewState(filter = newFilter)
         }
-        vm.showLoading(true)
-        doSearchShows("", newFilter, 1)
     }
 
     override fun loadNextShows() {
@@ -75,20 +57,24 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     override fun refreshData() = searchShows(showFilter)
 
     override fun displayShowList() {
-        vm.showList(true, showList.map { it.copy() }, page < maxPages, showFilter)
-    }
-
-    override fun searchWatchlist(newFilter: String) {
-        vm.showLoading(true)
-        watchFilter = ""
-        doSearchWatchlist(newFilter)
+        inShows = true
+        updateViewState(
+            shows = showList.map { it.copy() }
+            , inShows = inShows
+            , hasMore = page < maxPages
+            , filter = showFilter)
     }
 
     override fun displayWatchList() {
         if (watchList.size == 0) {
             vm.showError(R.string.error_no_watchlist)
         } else {
-            vm.showList(false, watchList.map { it.copy() }, false, showFilter)
+            inShows = false
+            updateViewState(
+                shows = watchList.map { it.copy() }
+                , inShows = inShows
+                , hasMore = false
+                , filter = showFilter)
         }
     }
 
@@ -105,30 +91,62 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
         }
     }
 
+    override fun toggleItem() {
+        vm.showLoading(true)
+        val selected = show
+        if (selected != null) {
+            if (watchList.count { it.id == selected.id } == 1) {
+                updateViewState(watchListed = false)
+                doDeleteItem(selected.id)
+            } else {
+                updateViewState(watchListed = true)
+                doAddItem(selected)
+            }
+        } else {
+            gotError(R.string.error_show_not_select, null)
+        }
+    }
+
     override fun deleteItem(showId: Int) {
         vm.showLoading(true)
-        disposables.add(
-            Observable.fromCallable {
-                db.deleteWatchlistItem(showId)
-            }.subscribeOn(schedulers.subscribeScheduler)
-                .observeOn(schedulers.observeScheduler)
-                .subscribe(
-                    {
-                        if (it != 1) {
-                            vm.showError(R.string.error_show_not_found)
-                        }
-                        doSearchWatchlist(watchFilter)
-                    }
-                    , {
-                        vm.showError(R.string.error_delete_watchlist, it?.message)
-                        doSearchWatchlist(watchFilter)
-                    }
-                )
-        )
+        doDeleteItem(showId)
     }
 
     override fun exitDisplay() {
-        vm.showDetails(null)
+        show = null
+        updateViewState(selected = true, watchListed = false)
+    }
+
+    private fun loadInitialData() {
+        vm.showLoading(true)
+        watchFilter = ""
+
+        disposables.add(
+            Observable.fromCallable {
+                db.loadWatchlist()
+            }.subscribeOn(schedulers.subscribeScheduler)
+                .observeOn(schedulers.observeScheduler)
+                .map { list -> list.map { Show(it) } }
+                .subscribe(
+                    {
+                        watchList.addAll(it)
+                        updateViewState(
+                            inShows = inShows
+                            , hasMore = false
+                            , hasWatchlist = watchList.size > 0
+                        )
+                        vm.showLoading(false)
+                    }
+                    , {
+                        updateViewState(
+                            inShows = inShows
+                            , hasMore = false
+                            , hasWatchlist = false
+                        )
+                        gotError(R.string.error_loading_data, it)
+                    }
+                )
+        )
     }
 
     private fun doSearchShows(currentFilter: String, newFilter: String, page: Int) {
@@ -172,16 +190,65 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             )
     }
 
-    private fun doSearchWatchlist(filter: String) {
+    private fun doDeleteItem(id: Int) {
         disposables.add(
             Observable.fromCallable {
-                db.loadWatchlistMatching(filter)
+                db.deleteWatchlistItem(id)
             }.subscribeOn(schedulers.subscribeScheduler)
                 .observeOn(schedulers.observeScheduler)
-                .map { list -> list.map { Show(it) } }
                 .subscribe(
-                    { gotWatchList(filter, it) }
-                    , { gotError(R.string.error_retrieving_data, it) }
+                    { result ->
+                        watchList.clear()
+                        watchList.addAll(result.map { Show(it) })
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
+                        if (inShows) {
+                            updateViewState(watchListed = inWatchlist)
+                        } else if (watchList.isEmpty()) {
+                            inShows = true
+                            updateViewState(shows= showList,inShows = inShows,filter = showFilter , hasMore = page < maxPages, watchListed = inWatchlist)
+                        }else {
+                            updateViewState(shows = watchList, hasMore = false, watchListed = inWatchlist)
+                        }
+                        vm.showLoading(false)
+                    }
+                    , { throwable ->
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
+                        if (inShows)
+                            updateViewState(watchListed = inWatchlist)
+                        else
+                            updateViewState(shows = watchList, hasMore = false, watchListed = inWatchlist)
+                        gotError(R.string.error_delete_watchlist, throwable)
+                    }
+                )
+        )
+    }
+
+    private fun doAddItem(selected: Show) {
+        disposables.add(
+            Observable.fromCallable {
+                db.addWatchlistItem(ShowDO(selected))
+            }.subscribeOn(schedulers.subscribeScheduler)
+                .observeOn(schedulers.observeScheduler)
+                .subscribe(
+                    { result ->
+                        watchList.clear()
+                        watchList.addAll(result.map { Show(it) })
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
+                        if (inShows) {
+                            updateViewState(watchListed = inWatchlist)
+                        } else {
+                            updateViewState(shows = watchList, watchListed = inWatchlist)
+                        }
+                        vm.showLoading(false)
+                    }, { throwable ->
+                        val inWatchlist = show?.let { s -> watchList.count { s.id == it.id } != 0 }
+                        if (inShows) {
+                            updateViewState(watchListed = inWatchlist)
+                        } else {
+                            updateViewState(shows = watchList, watchListed = inWatchlist)
+                        }
+                        gotError(R.string.error_add_watchlist, throwable)
+                    }
                 )
         )
     }
@@ -214,38 +281,36 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
             showFilter = newFilter
             showList.clear()
             showList.addAll(results)
-            vm.setShows(showList.map { it.copy() }, page < maxPages, showFilter)
+            updateViewState(
+                shows = showList.map { it.copy() }
+                , hasMore = page < maxPages
+                , filter = showFilter
+            )
             vm.showLoading(false)
         } else { //this means we are continuing with our previous searchFilter
             page = loadedPage
             maxPages = pages
             showList.addAll(results)
-            vm.setShows(showList.map { it.copy() }, page < maxPages, showFilter)
+            updateViewState(
+                shows = showList.map { it.copy() }
+                , hasMore = page < maxPages
+                , filter = showFilter
+            )
             vm.showLoading(false)
         }
     }
 
-    private fun gotWatchList(newFilter: String, list: List<Show>) {
-        if (list.isEmpty() && !newFilter.isEmpty()) {
-            vm.showError(R.string.error_no_results)
-        } else if (list.isEmpty()) {
-            vm.showList(true, showList.map { it.copy() }, page < maxPages, showFilter)
-        } else {
-            watchFilter = newFilter
-            watchList.clear()
-            watchList.addAll(list)
-            vm.setShows(watchList.map { it.copy() }, false, watchFilter)
-        }
+    private fun gotDetails(details: Show) {
+        show = details
+        updateViewState(selected = true, show = show, watchListed = watchList.count { it.id == details.id } > 0)
         vm.showLoading(false)
     }
 
-    private fun gotDetails(detail: Show) {
-        vm.showDetails(detail)
-        vm.showLoading(false)
+    private fun updateViewState(shows: List<Show>? = null, selected: Boolean = false, show: Show? = null, hasMore: Boolean? = null, filter: String? = null, inShows: Boolean? = null, hasWatchlist: Boolean? = null, watchListed: Boolean? = null) {
+        vm.updateState(ViewState(shows?.map { it.copy() }, selected, show?.copy(), hasMore, filter, inShows, hasWatchlist, watchListed))
     }
 
     override fun clear() {
         disposables.dispose()
     }
-
 }

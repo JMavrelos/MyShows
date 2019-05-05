@@ -15,8 +15,10 @@ import gr.blackswamp.myshows.ui.fragments.DisplayFragment
 import gr.blackswamp.myshows.ui.fragments.ListFragment
 import gr.blackswamp.myshows.ui.model.ShowDetailVO
 import gr.blackswamp.myshows.ui.model.ShowVO
+import gr.blackswamp.myshows.ui.model.ViewState
 import gr.blackswamp.myshows.util.AppSchedulers
 import gr.blackswamp.myshows.util.MediatorPairLiveData
+import gr.blackswamp.myshows.util.MediatorTripleLiveData
 import gr.blackswamp.myshows.util.SingleLiveEvent
 
 
@@ -24,31 +26,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
     override val loading = MutableLiveData<Boolean>() //if the loading overlay should be shown
     val error = SingleLiveEvent<String?>() // an error that should be displayed, when consumed it reverts to its initial state
 
-    override val searchFilter = MutableLiveData<String>() // the current searchFilter that should be displayed
-    override val show = MutableLiveData<ShowDetailVO>() //the currently selected show, if null then we are focusing on the list
-    override val showInWatchlist = MutableLiveData<Boolean>() //if the currently selected show is in the watchlist, null if there is no selected show
-    override val showList = MutableLiveData<List<ShowVO>>() //the list of shows that have been retrieved
+    private val currentFilter = MutableLiveData<String>() // the current searchFilter that should be displayed
+    override val show = MutableLiveData<ShowDetailVO>() //the currently selectionChanged show, if null then we are focusing on the list
+    override val showWatchListed = MutableLiveData<Boolean>() //if the currently selectionChanged show is in the watchlist, null if there is no selectionChanged show
+    val shows = MutableLiveData<List<ShowVO>>() //the list of shows that have been retrieved
     private val hasWatchList = MutableLiveData<Boolean>() //if there are shows saved in the watch later list
     override val displayingShowList = MutableLiveData<Boolean>() //holds a boolean that stores if the current view should be a show list or a watch list
-    //holds the title that will be shown in the list fragment
-    override val listTitle = MediatorPairLiveData<Boolean, String, String>(displayingShowList, searchFilter) { d, s ->
-        if (!s.isNullOrBlank()) {
-            s
-        } else if (d == true) {
-            application.getString(R.string.app_name)
-        } else {
-            application.getString(R.string.watchlist)
-        }
-    }
+
+    //region livedata that is derived in some form from the actual data received
+    override val listTitle = MediatorPairLiveData<Boolean, String, String>(displayingShowList, currentFilter) //holds the title that will be shown in the list fragment
+    { d, s -> application.getString(if (d == true) R.string.app_name else R.string.watchlist) + if (!s.isNullOrBlank()) ": $s" else "" }
     override val canGoToWatchlist = MediatorPairLiveData<Boolean, Boolean, Boolean>(displayingShowList, hasWatchList) { d, w -> (d == true && w == true) } //declares if the goto watchlist menu item should be displayed
     override val canGoToShows: LiveData<Boolean> = Transformations.map(displayingShowList) { !it }  //declares if the goto shows menu item should be displayed
     override val canLoadMore = MutableLiveData<Boolean>() // indicates if there are more items in the list
-
+    override val showInitialMessage = MediatorTripleLiveData<Boolean, List<ShowVO>, String, Boolean>(displayingShowList, shows, currentFilter) { d, s, f -> (d == true && s?.size ?: 0 == 0 && f.isNullOrEmpty()) }
     private val logic: IMainLogic = MainLogic(this, MovieDBClient.service, App.database, AppSchedulers) //object that handles the logic behind the list
-
-    init {
-        canLoadMore.postValue(false)
-    }
+    override val searchFilter: String get() = currentFilter.value ?: ""
+    override val adapterFilter = MediatorPairLiveData<Boolean, String, String>(displayingShowList, currentFilter) { d, c -> if (d == true) "" else c ?: "" }
+    override val showList = Transformations.map(shows) { Pair<List<ShowVO>, String?>(it, adapterFilter.value) }!!
+    //endregion
 
     //region incoming from logic
     override fun showError(@StringRes messageId: Int, param: String?) =
@@ -56,22 +52,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
 
     override fun showLoading(show: Boolean) = loading.postValue(show)
 
-    override fun setShows(shows: List<ShowVO>, hasMore: Boolean, filter: String) {
-        showList.postValue(shows)
-        canLoadMore.postValue(hasMore)
-        searchFilter.postValue(filter)
+    /** Used to update screen state from logic*/
+    override fun updateState(state: ViewState) {
+        state.shows?.let { shows.postValue(it) }
+        if (state.selectionChanged) {
+            show.postValue(state.show)
+        }
+        state.hasMore?.let { canLoadMore.postValue(it) }
+        state.filter?.let { currentFilter.postValue(it) }
+        state.inShows?.let { displayingShowList.postValue(it) }
+        state.hasWatchlist?.let { hasWatchList.postValue(it) }
+        state.watchListed?.let { showWatchListed.postValue(it) }
     }
 
-    override fun showDetails(detail: ShowDetailVO?) = show.postValue(detail)
-
-    override fun showList(isShows: Boolean, shows: List<ShowVO>, hasMore: Boolean, filter: String) {
-        displayingShowList.postValue(isShows)
-        setShows(shows, hasMore, filter)
-    }
-
-    override fun setHasWatchlist(has: Boolean) {
-        hasWatchList.postValue(has)
-    }
     //endregion
 
 
