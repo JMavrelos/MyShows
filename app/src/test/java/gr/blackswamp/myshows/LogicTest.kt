@@ -12,7 +12,7 @@ import gr.blackswamp.myshows.logic.MainLogic
 import gr.blackswamp.myshows.logic.model.Show
 import gr.blackswamp.myshows.ui.model.ViewState
 import gr.blackswamp.myshows.ui.viewmodel.IMainViewModel
-import io.reactivex.Observable
+import io.reactivex.Single
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -55,7 +55,7 @@ class LogicTest {
         val expected = ViewState(shows = response.map { Show(it) }, hasMore = true, filter = expectedFilter)
 
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, response, 4)))
+            .thenReturn(Single.just(ShowListAO(1, 1, response, 4)))
         logic.searchShows(expectedFilter, true)
 
         verify(vm).updateState(expected)
@@ -72,7 +72,7 @@ class LogicTest {
     fun whenThereAreNoResultsShowMessage() {
         val expectedFilter = "12jhj3k123"
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, listOf(), 1)))
+            .thenReturn(Single.just(ShowListAO(1, 1, listOf(), 1)))
 
         logic.searchShows(expectedFilter, true)
         verify(vm).showError(R.string.error_no_results)
@@ -86,7 +86,7 @@ class LogicTest {
         val all = buildApiShows(100, true)
         val expected = ViewState(shows = all.asSequence().filter { it.media_type != "person" }.map { Show(it) }.toList(), hasMore = false, filter = expectedFilter)
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all, 1)))
 
         logic.searchShows(expectedFilter, true)
 
@@ -104,9 +104,9 @@ class LogicTest {
         val expected = ViewState(shows = all.subList(0, 20).map { Show(it) }, hasMore = true, filter = expectedFilter)
 
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 10)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all.subList(0, 10), 10)))
         whenever(service.getShows(expectedFilter, 2))
-            .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(10, 20), 10)))
+            .thenReturn(Single.just(ShowListAO(1, 2, all.subList(10, 20), 10)))
         logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
 
@@ -124,10 +124,10 @@ class LogicTest {
         val expectedMax = 10
         val incorrectFilter = "12jhj3k123"
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, expectedPage, buildApiShows(30), expectedMax)))
+            .thenReturn(Single.just(ShowListAO(1, expectedPage, buildApiShows(30), expectedMax)))
 
         whenever(service.getShows(incorrectFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, -3, listOf(), 1)))
+            .thenReturn(Single.just(ShowListAO(1, -3, listOf(), 1)))
 
         logic.searchShows(expectedFilter, true)
         verify(vm, never()).showError(anyInt(), any())
@@ -146,13 +146,13 @@ class LogicTest {
         val expectedFilter = "12jhj3k123"
         val all = buildApiShows(30)
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
         whenever(service.getShows(expectedFilter, 2))
-            .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(0, 10), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 2, all.subList(0, 10), 3)))
         whenever(service.getShows(expectedFilter, 3))
-            .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(0, 10), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 3, all.subList(0, 10), 3)))
         whenever(service.getShows(expectedFilter, 4))
-            .thenReturn(Observable.just(ShowListAO(1, 4, listOf(), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 4, listOf(), 3)))
 
         logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
@@ -178,11 +178,11 @@ class LogicTest {
         val expected = ViewState(shows = all.filter { it.media_type != "person" }.map { Show(it) }, hasMore = false, filter = expectedFilter)
 
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
         whenever(service.getShows(expectedFilter, 2))
-            .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(10, 20), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 2, all.subList(10, 20), 3)))
         whenever(service.getShows(expectedFilter, 3))
-            .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(20, 30), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 3, all.subList(20, 30), 3)))
 
         logic.searchShows(expectedFilter, true)
 
@@ -203,11 +203,11 @@ class LogicTest {
         val expected = ViewState(shows = all.asSequence().filter { it.media_type != "person" }.map { Show(it) }.toList(), hasMore = false, filter = expectedFilter)
 
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all.subList(0, 10), 3)))
         whenever(service.getShows(expectedFilter, 2))
-            .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(10, 20), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 2, all.subList(10, 20), 3)))
         whenever(service.getShows(expectedFilter, 3))
-            .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(20, 22), 3)))
+            .thenReturn(Single.just(ShowListAO(1, 3, all.subList(20, 22), 3)))
 
         logic.searchShows(expectedFilter, true)
         logic.loadNextShows()
@@ -230,12 +230,12 @@ class LogicTest {
         val expected = ViewState(selectionChanged = true, show = Show(Show(selected), selectedDetails), watchListed = false)
 
         whenever(service.getShows(filter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all, 1)))
 
         if (selected.media_type == "movie") {
-            whenever(service.getMovieDetails(id)).thenReturn(Observable.just(selectedDetails))
+            whenever(service.getMovieDetails(id)).thenReturn(Single.just(selectedDetails))
         } else {
-            whenever(service.getTvDetails(id)).thenReturn(Observable.just(selectedDetails))
+            whenever(service.getTvDetails(id)).thenReturn(Single.just(selectedDetails))
         }
 
         logic.searchShows(filter, true)
@@ -252,7 +252,7 @@ class LogicTest {
         val all = buildApiShows(10, false, rnd.nextInt(100))
         val id = 1111
         whenever(service.getShows(filter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all, 1)))
         logic.searchShows(filter, true)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
@@ -304,13 +304,13 @@ class LogicTest {
         val expectedFilter = "12jhj3k123"
         val all = buildApiShows(100)
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all.subList(0, 10), 4)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all.subList(0, 10), 4)))
         whenever(service.getShows(expectedFilter, 2))
-            .thenReturn(Observable.just(ShowListAO(1, 2, all.subList(10, 20), 4)))
+            .thenReturn(Single.just(ShowListAO(1, 2, all.subList(10, 20), 4)))
         whenever(service.getShows(expectedFilter, 3))
-            .thenReturn(Observable.just(ShowListAO(1, 3, all.subList(20, 30), 4)))
+            .thenReturn(Single.just(ShowListAO(1, 3, all.subList(20, 30), 4)))
         whenever(service.getShows(expectedFilter, 4))
-            .thenReturn(Observable.just(ShowListAO(1, 4, all.subList(30, 40), 4)))
+            .thenReturn(Single.just(ShowListAO(1, 4, all.subList(30, 40), 4)))
 
         logic.searchShows(expectedFilter, true)
         verify(vm).updateState(ViewState(shows = all.subList(0, 10).map { Show(it) }, hasMore = true, filter = expectedFilter))
@@ -343,7 +343,7 @@ class LogicTest {
         val expected = ViewState(shows = all.map { Show(it) }, hasMore = false, filter = expectedFilter, inShows = true)
 
         whenever(service.getShows(expectedFilter, 1))
-            .thenReturn(Observable.just(ShowListAO(1, 1, all, 1)))
+            .thenReturn(Single.just(ShowListAO(1, 1, all, 1)))
         logic.searchShows(expectedFilter, true)
         reset(vm)
 
@@ -478,14 +478,16 @@ class LogicTest {
         logic.show = Show(toDelete)
         logic.watchList.add(Show(toDelete))
 
-        val expected = ViewState(watchListed = false)
+        val expected1 = ViewState(watchListed = false)
+        val expected2 = ViewState(hasWatchlist = false, watchListed = false)
 
         whenever(db.deleteWatchlistItem(toDelete.id, true))
             .thenReturn(listOf())
 
         logic.toggleItem()
 
-        verify(vm, times(2)).updateState(expected)
+        verify(vm).updateState(expected1)
+        verify(vm).updateState(expected2)
         verify(vm).showLoading(true)
         verify(vm).showLoading(false)
     }

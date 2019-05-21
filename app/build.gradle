@@ -73,6 +73,10 @@ dependencies {
     implementation deps.room.runtime
     implementation deps.room.rxjava2
     kapt deps.room.compiler
+    // Paging
+    implementation deps.paging.runtime
+    implementation deps.paging.rxjava
+
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
 }
 

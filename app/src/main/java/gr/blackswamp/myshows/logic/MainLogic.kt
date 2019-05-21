@@ -1,6 +1,7 @@
 package gr.blackswamp.myshows.logic
 
 import androidx.annotation.StringRes
+import androidx.lifecycle.MutableLiveData
 import gr.blackswamp.myshows.R
 import gr.blackswamp.myshows.data.api.MovieDBService
 import gr.blackswamp.myshows.data.db.AppDatabase
@@ -32,6 +33,9 @@ class MainLogic(private val vm: IMainViewModel, private val service: MovieDBServ
     internal var watchFilter: String = "" //holds the last saved filter that was used to filter the items of the watchlist
     internal var inShows: Boolean = true //if true then the user is currently viewing the service search results, otherwise their watch list
     internal var show: Show? = null //if not null then the user is viewing the list otherwise the details of this show
+
+
+    private var filter = MutableLiveData<String>()
 
     init {
         loadInitialData()
